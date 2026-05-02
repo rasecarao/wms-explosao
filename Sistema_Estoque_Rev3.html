@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WMS Explosão</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:#f7f6f3;--surface:#fff;--surface2:#f1f0ed;--border:#e2e0da;--border2:#ccc9c0;
+  --text:#1a1a18;--text2:#6b6960;--text3:#9b9890;
+  --accent:#1a5c38;--accent-bg:#e8f4ed;--accent-text:#1a5c38;
+  --danger:#c0392b;--danger-bg:#fdf0ee;
+  --warn-bg:#fef9ec;--warn-text:#7a5c00;
+  --blue-bg:#eaf1fb;--blue-text:#1a3f6f;
+  --radius:10px;--radius-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:50}
+.topbar-brand{font-size:16px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:10px}
+.topbar-logo{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.topbar-sub{color:var(--text2);font-weight:400;font-size:13px}
+.topbar-right{display:flex;gap:10px;align-items:center}
+.sync-info{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#27ae60;flex-shrink:0}
+.sync-dot.offline{background:#e74c3c}
+.sync-dot.loading{background:#f39c12;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:2px;overflow-x:auto}
+.nav::-webkit-scrollbar{height:3px}
+.nav-btn{padding:11px 14px;font-size:13px;color:var(--text2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;font-weight:500;transition:all .15s}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+#config-banner{background:var(--warn-bg);border:1px solid #f0d060;border-radius:var(--radius);padding:1rem 1.25rem;margin:1.5rem 2rem 0;display:flex;align-items:flex-start;gap:12px}
+#config-banner.hidden{display:none}
+.banner-text p{font-size:13px;color:var(--warn-text);line-height:1.6}
+.banner-input-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.banner-input-row input{flex:1;min-width:200px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-family:monospace;background:var(--surface);color:var(--text)}
+.banner-input-row button{padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;font-weight:500}
+.banner-input-row button:hover{background:#155030}
+.main{max-width:1400px;margin:0 auto;padding:1.5rem 2rem}
+.page{display:none;flex-direction:column;gap:16px}
+.page.active{display:flex}
+/* Stat cards */
+.summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media(max-width:900px){.summary-grid{grid-template-columns:repeat(3,1fr)}}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.stat-value{font-size:28px;font-weight:600;color:var(--text);line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.stat-card.ok .stat-value{color:var(--accent)}
+.stat-card.danger .stat-value{color:var(--danger)}
+.stat-card.warn .stat-value{color:#c07000}
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem}
+.card-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+select,input[type=text],input[type=date],input[type=number]{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);outline:none;font-family:inherit}
+select:focus,input:focus{border-color:var(--accent)}
+.btn{padding:7px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);cursor:pointer;font-weight:500;transition:background .15s;white-space:nowrap;font-family:inherit}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#155030}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border-color:#f5c6c2}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+/* Tabela */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:var(--surface2)}
+th{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left;border-bottom:2px solid var(--border2);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg)}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.b-ok{background:var(--accent-bg);color:var(--accent-text)}
+.b-warn{background:#fef9c3;color:#7a5200}
+.b-danger{background:var(--danger-bg);color:var(--danger)}
+.b-info{background:var(--blue-bg);color:var(--blue-text)}
+.b-cat{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.b-lote{background:#f0f4ff;color:#2c4a9e;border:1px solid #c5d0f0;font-family:monospace;font-size:11px}
+.b-venc{background:var(--danger-bg);color:var(--danger)}
+.b-urg{background:#fff0e0;color:#b84c00;border:1px solid #f5c897}
+.b-prox{background:var(--warn-bg);color:var(--warn-text)}
+/* Progress */
+.prog-wrap{display:flex;align-items:center;gap:7px;min-width:110px}
+.prog-bar{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.prog-fill{height:100%;border-radius:3px}
+.prog-fill.ok{background:var(--accent)}
+.prog-fill.warn{background:#e0a000}
+.prog-fill.danger{background:var(--danger)}
+.prog-label{font-size:11px;color:var(--text2);min-width:30px;text-align:right;font-weight:600}
+/* Form */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text2)}
+.form-group input,.form-group select{width:100%}
+.form-note{font-size:11px;color:var(--text3);margin-top:10px}
+.forn-hint{font-size:11px;color:var(--text3);margin-top:3px}
+/* Alertas */
+.alert-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:7px;border:1px solid transparent}
+.alert-item.danger{background:var(--danger-bg);border-color:#f5c6c2}
+.alert-item.warn{background:var(--warn-bg);border-color:#f0d060}
+.alert-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.alert-icon.danger{background:#fdd;color:var(--danger)}
+.alert-icon.warn{background:#fef3c7;color:#9a6200}
+.alert-body{flex:1;min-width:0}
+.alert-name{font-size:13px;font-weight:600}
+.alert-desc{font-size:11px;color:var(--text2);margin-top:1px}
+.alert-cta{font-size:12px;font-weight:600;color:var(--accent);cursor:pointer}
+.alert-cta:hover{text-decoration:underline}
+/* Coverage */
+.cov-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.cov-name{width:135px;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cov-fill-wrap{flex:1;height:14px;background:var(--surface2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.cov-fill{height:100%;border-radius:3px}
+.cov-days{width:42px;text-align:right;font-size:12px;font-weight:600;flex-shrink:0}
+/* Entradas recentes */
+.ent-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.ent-item:last-child{border-bottom:none}
+.ent-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-bg);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;font-size:14px;flex-shrink:0}
+.ent-body{flex:1;min-width:0}
+.ent-name{font-size:13px;font-weight:600}
+.ent-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.ent-qty{font-size:14px;font-weight:700;color:var(--accent)}
+/* Inner tabs */
+.inner-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.inner-tab{padding:4px 12px;border-radius:20px;font-size:12px;border:1px solid var(--border2);cursor:pointer;background:none;color:var(--text2);font-family:inherit;font-weight:500;transition:all .15s}
+.inner-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chart-box{position:relative;width:100%;height:220px;margin-top:8px}
+/* Lote row expandida */
+.lote-row{background:#fafcff}
+.lote-row td{font-size:12px;color:var(--text2);padding:6px 12px}
+.expand-btn{background:none;border:none;cursor:pointer;color:var(--accent);font-size:16px;font-weight:700;padding:0 6px;line-height:1}
+/* Section header */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.section-header h3{font-size:14px;font-weight:600;color:var(--text)}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a18;color:#fff;padding:11px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;max-width:340px}
+.toast.show{opacity:1;transform:none}
+.toast.error{background:var(--danger)}
+.toast.warn-t{background:#8a5e00}
+/* Loading */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(247,246,243,.8);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-overlay.show{display:flex}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{font-size:13px;color:var(--text2);font-weight:500}
+.empty{text-align:center;padding:28px;color:var(--text3);font-size:13px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="loading-overlay" id="loading-overlay"><div class="spinner"></div><div class="loading-msg" id="loading-msg">Carregando...</div></div>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">EA</div>
+    <div>WMS Explosão<span class="topbar-sub"> · Controle de Estoque por Lotes</span></div>
+  </div>
+  <div class="topbar-right">
+    <div class="sync-info"><div class="sync-dot offline" id="sync-dot"></div><span id="sync-label">Sem conexão</span></div>
+    <button class="btn btn-sm" onclick="abrirConfig()">⚙ Configurar Sheets</button>
+    <button class="btn btn-sm" onclick="sincronizar()">↻ Sincronizar</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('dashboard',this)">Dashboard</button>
+  <button class="nav-btn" onclick="showPage('estoque',this)">Estoque por Lote</button>
+  <button class="nav-btn" onclick="showPage('entradas',this)">Registrar Entrada</button>
+  <button class="nav-btn" onclick="showPage('contagem',this)">Contagem Física</button>
+  <button class="nav-btn" onclick="showPage('consumo',this)">Análise de Consumo</button>
+  <button class="nav-btn" onclick="showPage('reposicao',this)">Reposição</button>
+  <button class="nav-btn" onclick="showPage('rastreabilidade',this)">Rastreabilidade</button>
+  <button class="nav-btn" onclick="showPage('config',this)">Configurações</button>
+</div>
+
+<div id="config-banner">
+  <div style="font-size:18px;flex-shrink:0">📋</div>
+  <div class="banner-text">
+    <p><strong>Configure a URL do Google Apps Script</strong> para sincronizar com sua planilha.</p>
+    <p>No Apps Script: <strong>Implantar → Nova implantação → App da Web</strong> → copie a URL e cole abaixo.</p>
+    <div class="banner-input-row">
+      <input type="text" id="url-input" placeholder="https://script.google.com/macros/s/.../exec">
+      <button onclick="salvarUrl()">Conectar</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══ DASHBOARD ═══════════════════════════════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="summary-grid" id="dash-metrics"></div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">Cobertura Consolidada por Matéria-Prima (dias)</div><div id="cov-chart"></div></div>
+    <div class="card"><div class="card-title">Alertas de Estoque</div><div id="alertas-list"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">Consumo Mensal Estimado</div><div class="chart-box"><canvas id="chart-consumo" role="img" aria-label="Consumo mensal por MP">Consumo mensal.</canvas></div></div>
+    <div class="card"><div class="card-title">Lotes Recebidos</div><div id="entradas-recentes"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚠ Validades — Lotes em Atenção</div>
+    <div id="validades-alert"></div>
+  </div>
+</div>
+
+<!-- ═══ ESTOQUE POR LOTE ════════════════════════════════════════ -->
+<div class="page" id="page-estoque">
+  <div class="toolbar">
+    <input type="text" id="busca-mp" placeholder="Buscar matéria-prima..." oninput="filtrarEstoque()" style="width:200px">
+    <select id="filtro-cat" onchange="filtrarEstoque()">
+      <option value="">Todas as categorias</option>
+      <option value="Aroma Líquido">Aromas Líquidos</option><option value="Aroma Seco">Aromas Secos</option>
+      <option value="Aditivo">Aditivos</option><option value="Corante">Corantes</option>
+      <option value="Grão">Grãos</option><option value="Insumo Industrial">Insumos Industriais</option>
+      <option value="Pellet">Pellets</option><option value="Embalagem">Embalagens Próprias</option>
+      <option value="Embalagem Terceiro">Embalagens Terceiros</option>
+    </select>
+    <select id="filtro-status" onchange="filtrarEstoque()">
+      <option value="">Todos os status</option>
+      <option value="danger">Críticos</option><option value="warn">Atenção</option><option value="ok">Normal</option>
+    </select>
+    <button class="btn btn-sm" onclick="sincronizar()">↻ Sincronizar</button>
+  </div>
+  <div class="table-wrap">
+    <table id="tbl-estoque">
+      <thead><tr>
+        <th style="width:30px"></th>
+        <th>Matéria-Prima</th><th>Categoria</th><th>Saldo Total</th><th>Un</th>
+        <th>Lotes Ativos</th><th>Cobertura</th><th>Status</th>
+      </tr></thead>
+      <tbody id="tbody-estoque"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ REGISTRAR ENTRADA (LOTE) ════════════════════════════════ -->
+<div class="page" id="page-entradas">
+  <div class="card">
+    <div class="card-title">Registrar Nova Entrada de Estoque — Novo Lote</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Matéria-Prima *</label><select id="ent-mp" onchange="atualizarFornecedores()"><option value="">Selecionar...</option></select></div>
+      <div class="form-group"><label>Quantidade Recebida *</label><input type="number" id="ent-qty" placeholder="0" min="0" step="0.1"></div>
+      <div class="form-group">
+        <label>Fornecedor *</label>
+        <input type="text" id="ent-forn" list="forn-list" placeholder="Selecione ou digite..." autocomplete="off">
+        <datalist id="forn-list"></datalist>
+        <span class="forn-hint">Selecione ou digite. Para múltiplos fornecedores, cadastre na aba Config.</span>
+      </div>
+      <div class="form-group"><label>Número do Lote *</label><input type="text" id="ent-lote" placeholder="Ex: 16SD6F1A5D1" style="text-transform:uppercase"></div>
+      <div class="form-group"><label>Validade</label><input type="date" id="ent-validade"></div>
+      <div class="form-group"><label>Data da Compra</label><input type="date" id="ent-data-compra"></div>
+      <div class="form-group"><label>Previsão de Entrega</label><input type="date" id="ent-prev-entrega"></div>
+      <div class="form-group"><label>Data Efetiva de Entrega</label><input type="date" id="ent-data-entrega" title="Ao preencher, o lote entra no saldo disponível"></div>
+      <div class="form-group"><label>Valor Unitário (R$)</label><input type="number" id="ent-valor" step="0.01" min="0" placeholder="0,00"></div>
+      <div class="form-group"><label>Observações</label><input type="text" id="ent-obs" placeholder="Opcional"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="registrarLote()" id="btn-ent">Registrar Lote</button>
+      <button class="btn" onclick="limparEnt()">Limpar</button>
+    </div>
+    <p class="form-note">* Campos obrigatórios. Cada entrada cria um lote independente rastreável. O saldo só entra no sistema ao preencher a Data Efetiva de Entrega.</p>
+  </div>
+  <div>
+    <div class="section-header"><h3>Histórico de Lotes Registrados</h3><button class="btn btn-sm" onclick="sincronizar()">↻ Atualizar</button></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Data Entrada</th><th>Matéria-Prima</th><th>Lote</th><th>Fornecedor</th>
+          <th>Qtd Entrada</th><th>Saldo Lote</th><th>Un</th><th>Validade</th>
+          <th>Valor Unit.</th><th>Valor Total</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="tbody-entradas"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONTAGEM FÍSICA ══════════════════════════════════════════ -->
+<div class="page" id="page-contagem">
+  <div class="card">
+    <div class="section-header">
+      <h3>Nova Contagem Física — por Lote</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="date" id="cnt-data">
+        <input type="text" id="cnt-obs" placeholder="Observação (opcional)" style="width:200px">
+        <button class="btn btn-sm" onclick="abrirModalImpressao()" style="background:var(--surface2);border:1px solid var(--border)">🖨 Ficha de Contagem</button>
+        <button class="btn btn-primary btn-sm" onclick="salvarContagem()" id="btn-cnt">Salvar Contagem</button>
+      </div>
+    </div>
+    <p class="form-note" style="margin-bottom:12px">Informe a quantidade física encontrada para cada lote ativo. O sistema atualiza o saldo automaticamente.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Matéria-Prima</th><th>Lote</th><th>Fornecedor</th><th>Validade</th><th>Saldo Teórico</th><th>Contagem Física</th><th>Divergência</th></tr></thead>
+        <tbody id="tbody-contagem"></tbody>
+      </table>
+    </div>
+  </div>
+  <div>
+    <div class="section-header"><h3>Histórico de Contagens</h3></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data</th><th>Matéria-Prima</th><th>Lote</th><th>Teórico</th><th>Físico</th><th>Divergência</th><th>%</th></tr></thead>
+        <tbody id="tbody-hist-cont"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ANÁLISE DE CONSUMO ═══════════════════════════════════════ -->
+<div class="page" id="page-consumo">
+  <div class="card">
+    <div class="card-title">Análise de Consumo — Visão Consolidada por Matéria-Prima</div>
+    <div class="inner-tabs" id="consumo-tabs"></div>
+    <div id="consumo-detalhe"></div>
+    <div class="chart-box"><canvas id="chart-consumo-det" role="img" aria-label="Histórico de saldo">Histórico.</canvas></div>
+  </div>
+</div>
+
+<!-- ═══ REPOSIÇÃO ════════════════════════════════════════════════ -->
+<div class="page" id="page-reposicao">
+  <div class="card">
+    <div class="card-title">Inteligência de Reposição — Consolidado por Matéria-Prima</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Matéria-Prima</th><th>Saldo Total</th><th>Lotes Ativos</th>
+          <th>Consumo/sem</th><th>Lead Time</th><th>Ponto de Pedido</th>
+          <th>Data Ideal do Pedido</th><th>Prev. Ruptura</th><th>Status</th>
+        </tr></thead>
+        <tbody id="tbody-reposicao"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Simulador de Reposição</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Matéria-Prima</label><select id="sim-mp" onchange="simularReposicao()"><option value="">Selecionar...</option></select></div>
+      <div class="form-group"><label>Quantidade a Pedir</label><input type="number" id="sim-qty" oninput="simularReposicao()" placeholder="0" min="0"></div>
+    </div>
+    <div id="sim-resultado" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- ═══ RASTREABILIDADE ══════════════════════════════════════════ -->
+<div class="page" id="page-rastreabilidade">
+  <div class="toolbar">
+    <input type="text" id="busca-lote" placeholder="Buscar por lote, fornecedor ou MP..." oninput="filtrarRastreabilidade()" style="width:280px">
+    <select id="filtro-rastr" onchange="filtrarRastreabilidade()">
+      <option value="">Todos os lotes</option>
+      <option value="ativo">Lotes ativos</option>
+      <option value="encerrado">Lotes encerrados</option>
+      <option value="vencido">Vencidos</option>
+      <option value="urgente">Urgente (≤7 dias)</option>
+      <option value="prox">Vence em breve (7–30 dias)</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Matéria-Prima</th><th>Lote</th><th>Fornecedor</th>
+        <th>Entrada</th><th>Qtd Entrada</th><th>Saldo Atual</th><th>Un</th>
+        <th>Validade</th><th>Valor Unit.</th><th>Valor Total</th><th>Status Lote</th><th></th>
+      </tr></thead>
+      <tbody id="tbody-rastreabilidade"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ CONFIGURAÇÕES ════════════════════════════════════════════ -->
+<div class="page" id="page-config">
+  <div class="card">
+    <div class="card-title">Conexão com Google Sheets</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="url-config" placeholder="https://script.google.com/macros/s/.../exec" style="flex:1;min-width:200px;font-family:monospace;font-size:12px">
+      <button class="btn btn-primary" onclick="salvarUrlConfig()">Salvar e Conectar</button>
+      <button class="btn" onclick="sincronizar()">↻ Testar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Cadastrar Nova Matéria-Prima</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nome *</label><input type="text" id="cfg-nome" placeholder="Ex: Açúcar Cristal"></div>
+      <div class="form-group"><label>Categoria</label>
+        <select id="cfg-cat">
+          <option value="Aroma Líquido">Aroma Líquido</option><option value="Aroma Seco">Aroma Seco</option>
+          <option value="Aditivo">Aditivo</option><option value="Corante">Corante</option>
+          <option value="Grão">Grão</option><option value="Insumo Industrial">Insumo Industrial</option>
+          <option value="Pellet">Pellet</option><option value="Embalagem">Embalagem</option>
+          <option value="Embalagem Terceiro">Embalagem Terceiro</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Unidade</label>
+        <select id="cfg-un"><option value="saco">Saco</option><option value="rolo">Rolo</option><option value="kg">Kg</option><option value="un">Un</option><option value="L">L</option><option value="cx">Cx</option><option value="fardo">Fardo</option></select>
+      </div>
+      <div class="form-group"><label>Estoque Mínimo</label><input type="number" id="cfg-min" placeholder="0" step="0.1" min="0"></div>
+      <div class="form-group"><label>Estoque de Segurança</label><input type="number" id="cfg-seg" placeholder="0" step="0.1" min="0"></div>
+      <div class="form-group"><label>Lead Time (dias)</label><input type="number" id="cfg-lead" placeholder="7" min="1"></div>
+      <div class="form-group">
+        <label>Fornecedor(es)</label>
+        <input type="text" id="cfg-forn" list="forn-list-cfg" placeholder="Ex: Cargill / Moinho Verde">
+        <datalist id="forn-list-cfg"></datalist>
+        <span class="forn-hint">Múltiplos: separe com / (ex: Safia / Taí)</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="adicionarMP()" id="btn-add-mp">Salvar na Planilha</button>
+      <button class="btn" onclick="limparCfg()">Limpar</button>
+    </div>
+  </div>
+  <div>
+    <div class="section-header"><h3>Matérias-Primas Cadastradas</h3><button class="btn btn-sm" onclick="sincronizar()">↻ Sincronizar</button></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Nome</th><th>Categoria</th><th>Un</th><th>Saldo</th><th>Mínimo</th><th>Segurança</th><th>Lead</th><th>Fornecedor(es)</th><th></th></tr></thead>
+        <tbody id="tbody-config"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ CONFIG ═══════════════════════════════════════════════════
+const URL_FIXA = 'https://script.google.com/macros/s/AKfycbxbQW8d8Y2WC5zl1RNfFKFrBSbodm5EoyJ405nm6aWXu62pFFmRIcxNMITy1d5vfIHu/exec';
+let SCRIPT_URL = localStorage.getItem('ea_estoque_url') || URL_FIXA;
+
+// ═══ STATE ════════════════════════════════════════════════════
+let S = { materiais: [], lotes: [], contagens: [] };
+let chartC = null, chartD = null;
+
+// ═══ INIT ═════════════════════════════════════════════════════
+window.onload = () => {
+  document.getElementById('cnt-data').value = hoje();
+  document.getElementById('ent-data-compra').value = hoje();
+  document.getElementById('ent-data-entrega').value = hoje();
+  if (SCRIPT_URL) {
+    document.getElementById('url-input').value = SCRIPT_URL;
+    document.getElementById('url-config').value = SCRIPT_URL;
+    document.getElementById('config-banner').classList.add('hidden');
+    sincronizar(true);
+  } else {
+    S.materiais = DADOS_EXEMPLO();
+    renderPage('dashboard');
+    setSyncStatus('offline','Sem conexão — configure a URL');
+  }
+};
+function hoje(){ return new Date().toISOString().split('T')[0]; }
+
+// ═══ GOOGLE SHEETS ════════════════════════════════════════════
+async function gsCall(payload) {
+  if (!SCRIPT_URL) { notify('Configure a URL do Apps Script.','warn'); return null; }
+  mostrarLoading(true);
+  try {
+    const r = await fetch(SCRIPT_URL, { method:'POST', body:JSON.stringify(payload) });
+    return await r.json();
+  } catch(e) {
+    notify('Erro de conexão. Verifique a URL.','error');
+    return null;
+  } finally { mostrarLoading(false); }
+}
+
+async function sincronizar(silencioso) {
+  if (!SCRIPT_URL) return;
+  setSyncStatus('loading','Sincronizando...');
+  const data = await gsCall({ action:'getAll' });
+  if (!data) { setSyncStatus('offline','Erro de conexão'); return; }
+  if (data.ok) {
+    S.materiais  = (data.result.materiais  || []).map(normM);
+    S.lotes      = (data.result.lotes      || []).map(normL);
+    S.contagens  = (data.result.contagens  || []).map(normCnt);
+    const hr = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    setSyncStatus('online','Sincronizado '+hr);
+    if (!silencioso) notify('Dados sincronizados!');
+  } else {
+    setSyncStatus('offline','Erro: '+(data.error||'?'));
+    notify(data.error||'Erro ao sincronizar','error');
+  }
+  renderPage(pgAtual());
+}
+
+// ═══ URL CONFIG ═══════════════════════════════════════════════
+function abrirConfig(){ document.getElementById('config-banner').classList.toggle('hidden'); document.getElementById('url-input').value=SCRIPT_URL; }
+function salvarUrl(){
+  const url=document.getElementById('url-input').value.trim();
+  if(!url.startsWith('https://script.google.com')){notify('URL inválida.','error');return;}
+  SCRIPT_URL=url; localStorage.setItem('ea_estoque_url',url);
+  document.getElementById('url-config').value=url;
+  document.getElementById('config-banner').classList.add('hidden');
+  sincronizar();
+}
+function salvarUrlConfig(){
+  const url=document.getElementById('url-config').value.trim();
+  if(!url.startsWith('https://script.google.com')){notify('URL inválida.','error');return;}
+  SCRIPT_URL=url; localStorage.setItem('ea_estoque_url',url);
+  document.getElementById('url-input').value=url;
+  document.getElementById('config-banner').classList.add('hidden');
+  sincronizar();
+}
+function setSyncStatus(st,msg){
+  const dot=document.getElementById('sync-dot');
+  dot.className='sync-dot '+(st==='online'?'':st==='loading'?'loading':'offline');
+  document.getElementById('sync-label').textContent=msg;
+}
+
+// ═══ NORMALIZAÇÃO ═════════════════════════════════════════════
+function normM(m){
+  // forn pode vir como booleano TRUE/FALSE se a planilha tiver coluna extra deslocada — filtra isso
+  const fornRaw = m.forn;
+  const forn = (fornRaw === true || fornRaw === false || String(fornRaw).toUpperCase() === 'TRUE' || String(fornRaw).toUpperCase() === 'FALSE') ? '' : String(fornRaw||'');
+  return {id:Number(m.id),nome:String(m.nome||''),cat:String(m.cat||''),un:String(m.un||'un'),saldo:Number(m.saldo)||0,min:Number(m.min)||0,seg:Number(m.seg)||0,lead:Number(m.lead)||7,forn};
+}
+function normL(l){ return {id:Number(l.id),mpId:Number(l.mpId),forn:String(l.forn||''),lote:String(l.lote||''),dataCompra:fmtD(l.dataCompra),prevEntrega:fmtD(l.prevEntrega),dataEntrega:fmtD(l.dataEntrega),qtyEntrada:Number(l.qtyEntrada)||0,saldoLote:Number(l.saldoLote)||0,valorUnit:l.valorUnit?Number(l.valorUnit):null,validade:fmtD(l.validade),obs:String(l.obs||''),ativo:l.ativo!==false&&String(l.ativo)!=='false'&&String(l.ativo)!=='FALSE'}; }
+function normCnt(c){ return {id:Number(c.id),data:fmtD(c.data),obs:String(c.obs||''),items:(c.items||[]).map(i=>({contagemId:Number(i.contagemId),loteId:Number(i.loteId),mpId:Number(i.mpId),teorico:Number(i.teorico)||0,fisico:Number(i.fisico)||0,div:Number(i.div)||0}))}; }
+function fmtD(v){ if(!v)return''; if(typeof v==='string'&&v.includes('-'))return v.slice(0,10); const d=new Date(v); return isNaN(d)?'':d.toISOString().split('T')[0]; }
+function fmtBR(s,curto){ if(!s)return'—'; const d=new Date(s+'T12:00'); return isNaN(d)?s:curto?d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):d.toLocaleDateString('pt-BR'); }
+
+// ═══ CÁLCULOS CONSOLIDADOS POR MP ════════════════════════════
+// Lotes ativos de uma MP
+function lotesAtivos(mpId){ return S.lotes.filter(l=>l.mpId===mpId&&l.ativo&&l.dataEntrega); }
+// Saldo consolidado = soma dos lotes ativos
+function saldoMP(mpId){ return lotesAtivos(mpId).reduce((a,l)=>a+l.saldoLote,0); }
+// Consumo semanal calculado a partir das contagens (visão consolidada)
+function consumoSem(mpId){
+  const cnts=S.contagens.filter(c=>c.items.some(i=>i.mpId===mpId)).sort((a,b)=>a.data>b.data?1:-1);
+  if(cnts.length<2) return null;
+  const diffs=[];
+  for(let i=1;i<cnts.length;i++){
+    const diasTotal=(new Date(cnts[i].data)-new Date(cnts[i-1].data))/864e5;
+    // Saldo consolidado da MP em cada contagem
+    const totPrev=cnts[i-1].items.filter(x=>x.mpId===mpId).reduce((a,x)=>a+x.fisico,0);
+    const totCur =cnts[i  ].items.filter(x=>x.mpId===mpId).reduce((a,x)=>a+x.fisico,0);
+    const cons=totPrev-totCur;
+    if(cons>0&&diasTotal>0) diffs.push(cons/diasTotal*7);
+  }
+  return diffs.length?diffs.reduce((a,b)=>a+b,0)/diffs.length:null;
+}
+function diasCob(mp){ const cs=consumoSem(mp.id); const s=saldoMP(mp.id); return(!cs||cs===0)?999:Math.round(s/(cs/7)); }
+function stMP(mp){ const dc=diasCob(mp),s=saldoMP(mp.id); if(s<=mp.min)return'danger'; if(s<=(mp.min+mp.seg))return'warn'; if(dc<=(mp.lead+3))return'warn'; return'ok'; }
+function vencido(v){ return v&&new Date(v+'T00:00')<new Date(); }
+function urgente(v){ if(!v)return false; const d=(new Date(v+'T00:00')-new Date())/864e5; return d>=0&&d<7; }
+function proxVencer(v){ if(!v)return false; const d=(new Date(v+'T00:00')-new Date())/864e5; return d>=7&&d<=30; }
+function badgeValidade(val){
+  if(vencido(val))   return '<span class="badge b-venc">🔴 Vencido</span>';
+  if(urgente(val))   return '<span class="badge b-urg">🟠 Urgente 7d</span>';
+  if(proxVencer(val))return '<span class="badge b-prox">🟡 Vence em breve</span>';
+  return '';
+}
+
+// ═══ NAV ══════════════════════════════════════════════════════
+function pgAtual(){ const a=document.querySelector('.page.active'); return a?a.id.replace('page-',''):'dashboard'; }
+function showPage(p,btn){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  if(btn)btn.classList.add('active');
+  renderPage(p);
+}
+function renderPage(p){
+  const m={dashboard:renderDashboard,estoque:renderEstoque,entradas:renderEntradas,contagem:renderContagem,consumo:renderConsumo,reposicao:renderReposicao,rastreabilidade:renderRastreabilidade,config:renderConfig};
+  if(m[p])m[p]();
+}
+
+// ═══ DASHBOARD ════════════════════════════════════════════════
+function renderDashboard(){
+  const mats=S.materiais;
+  const ok=mats.filter(m=>stMP(m)==='ok').length;
+  const w=mats.filter(m=>stMP(m)==='warn').length;
+  const d=mats.filter(m=>stMP(m)==='danger').length;
+  const lotesAtivosTotal=S.lotes.filter(l=>l.ativo&&l.dataEntrada).length;
+  const vencidos=S.lotes.filter(l=>l.ativo&&vencido(l.validade)).length;
+  document.getElementById('dash-metrics').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Matérias-Primas</div><div class="stat-value">${mats.length}</div><div class="stat-sub">cadastradas</div></div>
+    <div class="stat-card ok"><div class="stat-label">Estoque OK</div><div class="stat-value">${ok}</div><div class="stat-sub">MPs normais</div></div>
+    <div class="stat-card warn"><div class="stat-label">Em Atenção</div><div class="stat-value">${w}</div><div class="stat-sub">reposição próxima</div></div>
+    <div class="stat-card danger"><div class="stat-label">Críticos</div><div class="stat-value">${d}</div><div class="stat-sub">abaixo do mínimo</div></div>
+    <div class="stat-card ${vencidos>0?'danger':'ok'}"><div class="stat-label">Lotes Vencidos</div><div class="stat-value">${vencidos}</div><div class="stat-sub">em estoque</div></div>`;
+
+  // Cobertura
+  const sorted=[...mats].map(m=>({...m,s:saldoMP(m.id),dias:diasCob(m),st:stMP(m)})).sort((a,b)=>a.dias-b.dias).slice(0,9);
+  const mx=Math.max(...sorted.map(m=>Math.min(m.dias,60)),30);
+  document.getElementById('cov-chart').innerHTML=sorted.map(m=>{
+    const p=Math.min(100,Math.round(Math.min(m.dias,60)/mx*100));
+    const cor=m.st==='danger'?'var(--danger)':m.st==='warn'?'#e0a000':'var(--accent)';
+    return`<div class="cov-row"><span class="cov-name" title="${m.nome}">${m.nome}</span><div class="cov-fill-wrap"><div class="cov-fill" style="width:${p}%;background:${cor}"></div></div><span class="cov-days" style="color:${cor}">${m.dias>=999?'∞':m.dias+'d'}</span></div>`;
+  }).join('');
+
+  // Alertas
+  const alertas=mats.filter(m=>stMP(m)!=='ok').sort((a,b)=>stMP(a)==='danger'?-1:1);
+  document.getElementById('alertas-list').innerHTML=alertas.length?alertas.map(m=>{
+    const st=stMP(m),dc=diasCob(m),s=saldoMP(m.id),la=lotesAtivos(m.id).length;
+    return`<div class="alert-item ${st}"><div class="alert-icon ${st}">${st==='danger'?'!':'↓'}</div><div class="alert-body"><div class="alert-name">${m.nome}</div><div class="alert-desc">${st==='danger'?`Saldo ${s.toFixed(1)} ${m.un} (${la} lotes) — mínimo: ${m.min}`:`Cobertura ${dc>=999?'∞':dc+'d'} — lead time: ${m.lead}d`}</div></div><span class="alert-cta" onclick="showPage('reposicao')">Ver →</span></div>`;
+  }).join(''):'<div class="empty">Nenhum alerta. Estoque em ordem.</div>';
+
+  // Lotes recentes
+  const recentes=[...S.lotes].filter(l=>l.dataEntrega).sort((a,b)=>b.dataEntrega>a.dataEntrega?1:-1).slice(0,5);
+  document.getElementById('entradas-recentes').innerHTML=recentes.length?recentes.map(l=>{
+    const mp=S.materiais.find(m=>m.id===l.mpId);
+    return`<div class="ent-item"><div class="ent-icon">+</div><div class="ent-body"><div class="ent-name">${mp?mp.nome:'—'} <span class="badge b-lote">${l.lote||'—'}</span></div><div class="ent-sub">${l.forn||'—'} · ${fmtBR(l.dataEntrega)}</div></div><div class="ent-qty">+${l.qtyEntrada} ${mp?mp.un:''}</div></div>`;
+  }).join(''):'<div class="empty">Nenhum lote recebido.</div>';
+
+  // Validades
+  const lotesBad=S.lotes.filter(l=>l.ativo&&l.validade&&(vencido(l.validade)||urgente(l.validade)||proxVencer(l.validade))).sort((a,b)=>a.validade>b.validade?1:-1);
+  document.getElementById('validades-alert').innerHTML=lotesBad.length?lotesBad.map(l=>{
+    const mp=S.materiais.find(m=>m.id===l.mpId);
+    const isV=vencido(l.validade),isU=urgente(l.validade);
+    const cls=isV?'danger':isU?'warn':'warn';
+    const icon=isV?'✕':isU?'⚠':'!';
+    const label=isV?'— <strong>VENCIDO</strong>':isU?'— <strong>URGENTE (≤7 dias)</strong>':'— Vence em breve (≤30 dias)';
+    return`<div class="alert-item ${cls}"><div class="alert-icon ${cls}">${icon}</div><div class="alert-body"><div class="alert-name">${mp?mp.nome:'—'} — Lote <span class="badge b-lote">${l.lote||'—'}</span></div><div class="alert-desc">${l.forn||'—'} · Saldo: ${l.saldoLote} ${mp?mp.un:''} · Validade: ${fmtBR(l.validade)} ${label}</div></div><span class="alert-cta" onclick="showPage('rastreabilidade')">Ver lote →</span></div>`;
+  }).join(''):'<div class="empty">Nenhum lote com validade crítica.</div>';
+
+  // Chart consumo
+  const lbs=mats.slice(0,7).map(m=>m.nome.length>13?m.nome.slice(0,13)+'…':m.nome);
+  const dt=mats.slice(0,7).map(m=>{const cs=consumoSem(m.id);return cs?Math.round(cs*4.33):0;});
+  if(chartC)chartC.destroy();
+  chartC=new Chart(document.getElementById('chart-consumo'),{type:'bar',data:{labels:lbs,datasets:[{label:'Consumo mensal est.',data:dt,backgroundColor:'#1a5c38',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11}}},y:{ticks:{font:{size:11}}}}}});
+}
+
+// ═══ ESTOQUE POR LOTE ═════════════════════════════════════════
+function renderEstoque(){ populateSelects(); filtrarEstoque(); }
+function filtrarEstoque(){
+  const b=document.getElementById('busca-mp').value.toLowerCase();
+  const c=document.getElementById('filtro-cat').value;
+  const s=document.getElementById('filtro-status').value;
+  const lista=S.materiais.filter(m=>(!b||m.nome.toLowerCase().includes(b))&&(!c||m.cat===c)&&(!s||stMP(m)===s));
+  const tbody=document.getElementById('tbody-estoque');
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">Nenhum item encontrado.</td></tr>';return;}
+  let rows='';
+  lista.forEach(m=>{
+    const st=stMP(m),dc=diasCob(m),s=saldoMP(m.id),la=lotesAtivos(m.id);
+    const pct=Math.min(100,Math.round(s/Math.max(m.min*3,1)*100));
+    const cl=st;
+    rows+=`<tr>
+      <td><button class="expand-btn" onclick="toggleLotes(${m.id},this)" title="Ver lotes">▶</button></td>
+      <td style="font-weight:600">${m.nome}</td>
+      <td><span class="badge b-cat">${m.cat}</span></td>
+      <td><strong>${s.toFixed(1)}</strong></td><td>${m.un}</td>
+      <td><span class="badge b-info">${la.length} lote${la.length!==1?'s':''}</span></td>
+      <td><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill ${cl}" style="width:${pct}%"></div></div><span class="prog-label">${dc>=999?'∞':dc+'d'}</span></div></td>
+      <td><span class="badge ${st==='ok'?'b-ok':st==='warn'?'b-warn':'b-danger'}">${st==='ok'?'Normal':st==='warn'?'Atenção':'Crítico'}</span></td>
+    </tr>
+    <tr id="lotes-${m.id}" style="display:none"><td colspan="8" style="padding:0">
+      <table style="width:100%;background:#f8fbff;border-top:1px solid #d0d8f0">
+        <thead><tr style="background:#eef2fc"><th>Lote</th><th>Fornecedor</th><th>Entrada</th><th>Qtd Entrada</th><th>Saldo Lote</th><th>Validade</th><th>Valor Unit.</th><th>Status</th></tr></thead>
+        <tbody>${la.length?la.map(l=>{
+          const badgeV=badgeValidade(l.validade);
+          return`<tr class="lote-row"><td><span class="badge b-lote">${l.lote||'—'}</span></td><td>${l.forn||'—'}</td><td>${fmtBR(l.dataEntrega)}</td><td>${l.qtyEntrada}</td><td><strong>${l.saldoLote.toFixed(1)}</strong></td><td>${l.validade?fmtBR(l.validade)+'&nbsp;'+badgeV:'—'}</td><td>${l.valorUnit?'R$ '+l.valorUnit.toFixed(2):'—'}</td><td>${l.ativo?'Ativo':'Encerrado'}</td></tr>`;
+        }).join(''):'<tr><td colspan="8" style="text-align:center;padding:10px;color:var(--text3)">Nenhum lote ativo.</td></tr>'}</tbody>
+      </table>
+    </td></tr>`;
+  });
+  tbody.innerHTML=rows;
+}
+function toggleLotes(mpId,btn){
+  const row=document.getElementById('lotes-'+mpId);
+  const open=row.style.display!=='none';
+  row.style.display=open?'none':'table-row';
+  btn.textContent=open?'▶':'▼';
+}
+
+// ═══ SELECTS ══════════════════════════════════════════════════
+function populateSelects(){
+  const opts='<option value="">Selecionar...</option>'+S.materiais.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
+  ['ent-mp','sim-mp'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  atualizarFornecedores();
+}
+function fornValido(f){ return f && f.trim()!=='' && f.trim().toUpperCase()!=='TRUE' && f.trim().toUpperCase()!=='FALSE'; }
+function atualizarFornecedores(){
+  const mpId=parseInt(document.getElementById('ent-mp')?.value);
+  const fornSet=new Set();
+  if(mpId){const mp=S.materiais.find(m=>m.id===mpId);if(mp&&mp.forn)mp.forn.split('/').map(f=>f.trim()).filter(fornValido).forEach(f=>fornSet.add(f));}
+  S.materiais.forEach(m=>{if(m.forn)m.forn.split('/').map(f=>f.trim()).filter(fornValido).forEach(f=>fornSet.add(f));});
+  const opts=[...fornSet].sort().map(f=>`<option value="${f}">`).join('');
+  ['forn-list','forn-list-cfg'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  if(mpId){const mp=S.materiais.find(m=>m.id===mpId);if(mp&&mp.forn){const fns=mp.forn.split('/').map(f=>f.trim()).filter(fornValido);if(fns.length===1){const el=document.getElementById('ent-forn');if(el&&!el.value)el.value=fns[0];}}}
+}
+
+// ═══ ENTRADAS (LOTES) ═════════════════════════════════════════
+function renderEntradas(){
+  populateSelects();
+  const tbody=document.getElementById('tbody-entradas');
+  const todos=[...S.lotes].sort((a,b)=>(b.dataEntrega||b.dataCompra)>(a.dataEntrega||a.dataCompra)?1:-1);
+  tbody.innerHTML=todos.length?todos.map(l=>{
+    const mp=S.materiais.find(m=>m.id===l.mpId);
+    const badgeV=badgeValidade(l.validade);
+    const stL=l.ativo?'<span class="badge b-ok">Ativo</span>':'<span class="badge b-cat">Encerrado</span>';
+    return`<tr>
+      <td>${fmtBR(l.dataEntrega)||'<span style="color:var(--warn-text)">Pendente</span>'}</td>
+      <td style="font-weight:600">${mp?mp.nome:'—'}</td>
+      <td><span class="badge b-lote">${l.lote||'—'}</span></td>
+      <td>${l.forn||'—'}</td>
+      <td>${l.qtyEntrada}</td>
+      <td><strong>${l.saldoLote.toFixed(1)}</strong></td>
+      <td>${mp?mp.un:''}</td>
+      <td>${l.validade?fmtBR(l.validade)+' '+badgeV:'—'}</td>
+      <td>${l.valorUnit?'R$ '+l.valorUnit.toFixed(2):'—'}</td>
+      <td>${l.valorUnit&&l.qtyEntrada?'R$ '+(l.valorUnit*l.qtyEntrada).toFixed(2):'—'}</td>
+      <td>${stL}</td>
+      <td>${l.ativo?`<button class="btn btn-sm btn-danger" onclick="encerrarLote(${l.id})">Encerrar</button>`:'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3)">Nenhum lote registrado.</td></tr>';
+}
+async function registrarLote(){
+  const mpId=parseInt(document.getElementById('ent-mp').value);
+  const qty=parseFloat(document.getElementById('ent-qty').value);
+  const forn=document.getElementById('ent-forn').value.trim();
+  const lote=document.getElementById('ent-lote').value.trim().toUpperCase();
+  if(!mpId||!qty||!forn||!lote){notify('Preencha os campos obrigatórios: MP, Quantidade, Fornecedor e Lote.','warn');return;}
+  const btn=document.getElementById('btn-ent');btn.disabled=true;btn.textContent='Salvando...';
+  const r=await gsCall({action:'saveLote',data:{mpId,qtyEntrada:qty,forn,lote,dataCompra:document.getElementById('ent-data-compra').value,prevEntrega:document.getElementById('ent-prev-entrega').value,dataEntrega:document.getElementById('ent-data-entrega').value,valorUnit:parseFloat(document.getElementById('ent-valor').value)||null,validade:document.getElementById('ent-validade').value,obs:document.getElementById('ent-obs').value}});
+  if(r&&r.ok){await sincronizar(true);notify('Lote registrado com sucesso!');limparEnt();renderEntradas();}
+  else if(r) notify(r.error||'Erro','error');
+  btn.disabled=false;btn.textContent='Registrar Lote';
+}
+async function encerrarLote(id){
+  if(!confirm('Confirma o encerramento deste lote? O saldo restante será zerado.'))return;
+  const r=await gsCall({action:'encerrarLote',data:{id}});
+  if(r&&r.ok){await sincronizar(true);notify('Lote encerrado.');renderEntradas();}
+  else if(r) notify(r.error||'Erro','error');
+}
+function limparEnt(){['ent-mp','ent-forn','ent-obs','ent-qty','ent-valor','ent-prev-entrega','ent-lote','ent-validade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('ent-data-compra').value=hoje();document.getElementById('ent-data-entrega').value=hoje();}
+
+// ═══ CONTAGEM ═════════════════════════════════════════════════
+function renderContagem(){
+  // Lista todos os lotes ativos para contagem
+  const lotesAtivos=S.lotes.filter(l=>l.ativo&&l.dataEntrega);
+  document.getElementById('tbody-contagem').innerHTML=lotesAtivos.length?lotesAtivos.map(l=>{
+    const mp=S.materiais.find(m=>m.id===l.mpId);
+    const badgeV=badgeValidade(l.validade);
+    return`<tr>
+      <td style="font-weight:600">${mp?mp.nome:'—'}</td>
+      <td><span class="badge b-lote">${l.lote||'—'}</span></td>
+      <td>${l.forn||'—'}</td>
+      <td>${l.validade?fmtBR(l.validade)+' '+badgeV:'—'}</td>
+      <td>${l.saldoLote.toFixed(1)}</td>
+      <td><input type="number" value="${l.saldoLote}" id="cnt-${l.id}" step="0.1" min="0" style="width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:var(--surface);color:var(--text)" oninput="calcDivL(${l.id},${l.saldoLote})"></td>
+      <td id="div-${l.id}" style="font-weight:600">0</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Nenhum lote ativo para contagem.</td></tr>';
+
+  // Histórico
+  const hist=S.contagens.flatMap(c=>c.items.map(i=>{
+    const mp=S.materiais.find(m=>m.id===i.mpId);
+    const lt=S.lotes.find(l=>l.id===i.loteId);
+    return{data:c.data,mp:mp?mp.nome:'—',lote:lt?lt.lote:'—',teorico:i.teorico,fisico:i.fisico,div:i.div};
+  })).sort((a,b)=>b.data>a.data?1:-1);
+  document.getElementById('tbody-hist-cont').innerHTML=hist.length
+    ?hist.map(h=>`<tr><td>${fmtBR(h.data)}</td><td>${h.mp}</td><td><span class="badge b-lote">${h.lote}</span></td><td>${h.teorico}</td><td>${h.fisico}</td><td style="font-weight:600;color:${h.div<0?'var(--danger)':h.div>0?'var(--accent)':'inherit'}">${h.div>0?'+':''}${h.div}</td><td>${h.teorico?Math.round(h.div/h.teorico*100)+'%':'—'}</td></tr>`).join('')
+    :'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Nenhum histórico.</td></tr>';
+}
+function calcDivL(loteId,teorico){
+  const v=parseFloat(document.getElementById('cnt-'+loteId).value)||0;
+  const div=Math.round((v-teorico)*10)/10;
+  const el=document.getElementById('div-'+loteId);
+  el.textContent=(div>0?'+':'')+div;
+  el.style.color=div<0?'var(--danger)':div>0?'var(--accent)':'inherit';
+}
+async function salvarContagem(){
+  const data=document.getElementById('cnt-data').value;
+  if(!data){notify('Selecione a data.','warn');return;}
+  const lotesAtivos=S.lotes.filter(l=>l.ativo&&l.dataEntrega);
+  const items=lotesAtivos.map(l=>{
+    const fisico=parseFloat(document.getElementById('cnt-'+l.id).value)||0;
+    return{loteId:l.id,mpId:l.mpId,teorico:l.saldoLote,fisico,div:Math.round((fisico-l.saldoLote)*10)/10};
+  });
+  const btn=document.getElementById('btn-cnt');btn.disabled=true;btn.textContent='Salvando...';
+  const r=await gsCall({action:'saveContagem',data:{data,obs:document.getElementById('cnt-obs').value,items}});
+  if(r&&r.ok){await sincronizar(true);notify('Contagem salva! Saldos dos lotes atualizados.');renderContagem();}
+  else if(r) notify(r.error||'Erro','error');
+  btn.disabled=false;btn.textContent='Salvar Contagem';
+}
+
+// ═══ CONSUMO ══════════════════════════════════════════════════
+function renderConsumo(){
+  const tabs=document.getElementById('consumo-tabs');
+  tabs.innerHTML=S.materiais.map((m,i)=>`<button class="inner-tab ${i===0?'active':''}" onclick="selConsumo(${m.id},this)">${m.nome}</button>`).join('');
+  if(S.materiais.length)selConsumo(S.materiais[0].id,tabs.firstChild);
+}
+function selConsumo(mpId,btn){
+  document.querySelectorAll('.inner-tab').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');
+  const mp=S.materiais.find(m=>m.id===mpId);if(!mp)return;
+  const cs=consumoSem(mpId),csMes=cs?Math.round(cs*4.33):null,dc=diasCob(mp),st=stMP(mp);
+  const s=saldoMP(mpId),la=lotesAtivos(mpId);
+  document.getElementById('consumo-detalhe').innerHTML=`
+    <div class="summary-grid" style="margin-bottom:14px;grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card"><div class="stat-label">Saldo Total</div><div class="stat-value" style="font-size:20px">${s.toFixed(1)}</div><div class="stat-sub">${mp.un} · ${la.length} lotes</div></div>
+      <div class="stat-card warn"><div class="stat-label">Consumo/sem</div><div class="stat-value" style="font-size:20px">${cs?cs.toFixed(1):'—'}</div><div class="stat-sub">${mp.un}/semana</div></div>
+      <div class="stat-card warn"><div class="stat-label">Consumo/mês</div><div class="stat-value" style="font-size:20px">${csMes||'—'}</div><div class="stat-sub">${mp.un}/mês</div></div>
+      <div class="stat-card ${st}"><div class="stat-label">Cobertura</div><div class="stat-value" style="font-size:20px">${dc>=999?'∞':dc}</div><div class="stat-sub">dias</div></div>
+      <div class="stat-card"><div class="stat-label">Custo Médio</div><div class="stat-value" style="font-size:20px">${(()=>{const lv=la.filter(l=>l.valorUnit);return lv.length?'R$'+(lv.reduce((a,l)=>a+l.valorUnit,0)/lv.length).toFixed(2):'—';})()}</div><div class="stat-sub">por ${mp.un}</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Lotes ativos: ${la.map(l=>`<span class="badge b-lote" style="margin-right:4px">${l.lote||'—'} · ${l.saldoLote.toFixed(1)} ${mp.un} (${l.forn})</span>`).join('')||'Nenhum'}</p>`;
+  // Gráfico: saldo consolidado por contagem
+  const cnts=S.contagens.filter(c=>c.items.some(i=>i.mpId===mpId)).sort((a,b)=>a.data>b.data?1:-1);
+  const lbs=cnts.map(c=>fmtBR(c.data,true));
+  const vals=cnts.map(c=>c.items.filter(i=>i.mpId===mpId).reduce((a,i)=>a+i.fisico,0));
+  if(chartD)chartD.destroy();
+  chartD=new Chart(document.getElementById('chart-consumo-det'),{type:'line',data:{labels:lbs,datasets:[{label:'Saldo físico consolidado',data:vals,borderColor:'#1a5c38',backgroundColor:'rgba(26,92,56,.1)',tension:.3,fill:true,pointRadius:5,pointBackgroundColor:'#1a5c38'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}}}}}});
+}
+
+// ═══ REPOSIÇÃO ════════════════════════════════════════════════
+function renderReposicao(){
+  populateSelects();
+  document.getElementById('tbody-reposicao').innerHTML=S.materiais.map(m=>{
+    const cs=consumoSem(m.id),csd=cs?cs/7:null;
+    const s=saldoMP(m.id),la=lotesAtivos(m.id).length;
+    const pto=csd?Math.round((m.lead+m.seg/Math.max(csd,.01))*csd+m.min):m.min;
+    const dRup=csd&&csd>0?Math.round(s/csd):999;
+    const dPed=csd?Math.round((s-pto)/csd):999;
+    const dPedDt=new Date();dPedDt.setDate(dPedDt.getDate()+Math.max(0,dPed));
+    const dRupDt=new Date();dRupDt.setDate(dRupDt.getDate()+dRup);
+    const st=stMP(m);
+    return`<tr>
+      <td style="font-weight:600">${m.nome}</td>
+      <td>${s.toFixed(1)} ${m.un}</td>
+      <td><span class="badge b-info">${la} lote${la!==1?'s':''}</span></td>
+      <td>${cs?cs.toFixed(1)+' '+m.un:'—'}</td>
+      <td>${m.lead}d</td><td>${pto} ${m.un}</td>
+      <td style="font-weight:600;color:${dPed<=0?'var(--danger)':dPed<=3?'#c07000':'inherit'}">${dPed<=0?'AGORA':dPedDt.toLocaleDateString('pt-BR')}</td>
+      <td style="color:${dRup<14?'var(--danger)':dRup<21?'#c07000':'inherit'}">${dRup>=999?'—':dRupDt.toLocaleDateString('pt-BR')}</td>
+      <td><span class="badge ${st==='ok'?'b-ok':st==='warn'?'b-warn':'b-danger'}">${st==='ok'?'Normal':st==='warn'?'Atenção':'Crítico'}</span></td>
+    </tr>`;
+  }).join('');
+}
+function simularReposicao(){
+  const mpId=parseInt(document.getElementById('sim-mp').value),qty=parseFloat(document.getElementById('sim-qty').value)||0;
+  const mp=S.materiais.find(m=>m.id===mpId);
+  if(!mp||!qty){document.getElementById('sim-resultado').innerHTML='';return;}
+  const s=saldoMP(mpId)+qty,cs=consumoSem(mpId),csd=cs?cs/7:null,nC=csd&&csd>0?Math.round(s/csd):999;
+  document.getElementById('sim-resultado').innerHTML=`<div class="summary-grid" style="grid-template-columns:repeat(3,1fr)"><div class="stat-card ok"><div class="stat-label">Novo Saldo</div><div class="stat-value" style="font-size:20px">${s.toFixed(1)}</div><div class="stat-sub">${mp.un}</div></div><div class="stat-card ok"><div class="stat-label">Nova Cobertura</div><div class="stat-value" style="font-size:20px">${nC>=999?'∞':nC}</div><div class="stat-sub">dias</div></div></div>`;
+}
+
+// ═══ RASTREABILIDADE ══════════════════════════════════════════
+function renderRastreabilidade(){ filtrarRastreabilidade(); }
+function filtrarRastreabilidade(){
+  const b=document.getElementById('busca-lote').value.toLowerCase();
+  const f=document.getElementById('filtro-rastr').value;
+  let lista=S.lotes.filter(l=>{
+    if(b&&!`${l.lote} ${l.forn} ${(S.materiais.find(m=>m.id===l.mpId)||{}).nome||''}`.toLowerCase().includes(b))return false;
+    if(f==='ativo')return l.ativo;
+    if(f==='encerrado')return !l.ativo;
+    if(f==='vencido')return vencido(l.validade);
+    if(f==='urgente')return urgente(l.validade);
+    if(f==='prox')return proxVencer(l.validade);
+    return true;
+  }).sort((a,b)=>(b.dataEntrega||b.dataCompra)>(a.dataEntrega||a.dataCompra)?1:-1);
+
+  document.getElementById('tbody-rastreabilidade').innerHTML=lista.length?lista.map(l=>{
+    const mp=S.materiais.find(m=>m.id===l.mpId);
+    const badgeV=badgeValidade(l.validade);
+    const stL=l.ativo?'<span class="badge b-ok">Ativo</span>':'<span class="badge b-cat">Encerrado</span>';
+    return`<tr>
+      <td style="font-weight:600">${mp?mp.nome:'—'}</td>
+      <td><span class="badge b-lote">${l.lote||'—'}</span></td>
+      <td>${l.forn||'—'}</td>
+      <td>${fmtBR(l.dataEntrega)||'—'}</td>
+      <td>${l.qtyEntrada}</td>
+      <td><strong>${l.saldoLote.toFixed(1)}</strong></td>
+      <td>${mp?mp.un:''}</td>
+      <td>${l.validade?fmtBR(l.validade)+' '+badgeV:'—'}</td>
+      <td>${l.valorUnit?'R$ '+l.valorUnit.toFixed(2):'—'}</td>
+      <td>${l.valorUnit&&l.qtyEntrada?'R$ '+(l.valorUnit*l.qtyEntrada).toFixed(2):'—'}</td>
+      <td>${stL}</td>
+      <td>${l.ativo?`<button class="btn btn-sm btn-danger" onclick="encerrarLote(${l.id})">Encerrar</button>`:'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3)">Nenhum lote encontrado.</td></tr>';
+}
+
+// ═══ CONFIG ═══════════════════════════════════════════════════
+function renderConfig(){
+  document.getElementById('url-config').value=SCRIPT_URL;
+  document.getElementById('tbody-config').innerHTML=S.materiais.length
+    ?S.materiais.map(m=>`<tr><td style="font-weight:600">${m.nome}</td><td>${m.cat}</td><td>${m.un}</td><td>${saldoMP(m.id).toFixed(1)}</td><td>${m.min}</td><td>${m.seg}</td><td>${m.lead}d</td><td>${m.forn||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="remMP(${m.id})">Remover</button></td></tr>`).join('')
+    :'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text3)">Nenhuma matéria-prima.</td></tr>';
+}
+async function adicionarMP(){
+  const nome=document.getElementById('cfg-nome').value.trim();
+  if(!nome){notify('Informe o nome.','warn');return;}
+  const btn=document.getElementById('btn-add-mp');btn.disabled=true;btn.textContent='Salvando...';
+  const r=await gsCall({action:'saveMaterial',data:{nome,cat:document.getElementById('cfg-cat').value,un:document.getElementById('cfg-un').value,min:Number(document.getElementById('cfg-min').value)||0,seg:Number(document.getElementById('cfg-seg').value)||0,lead:Number(document.getElementById('cfg-lead').value)||7,forn:document.getElementById('cfg-forn').value}});
+  if(r&&r.ok){await sincronizar(true);notify('Cadastrado!');limparCfg();renderConfig();}
+  else if(r) notify(r.error||'Erro','error');
+  btn.disabled=false;btn.textContent='Salvar na Planilha';
+}
+async function remMP(id){
+  if(!confirm('Confirma remoção?'))return;
+  const r=await gsCall({action:'deleteMaterial',data:{id}});
+  if(r&&r.ok){await sincronizar(true);notify('Removido.');renderConfig();}
+  else if(r) notify(r.error||'Erro','error');
+}
+function limparCfg(){['cfg-nome','cfg-min','cfg-seg','cfg-lead','cfg-forn'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})}
+
+// ═══ UTILITÁRIOS ══════════════════════════════════════════════
+function notify(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(tipo==='error'?' error':tipo==='warn'?' warn-t':'');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);}
+function mostrarLoading(show){document.getElementById('loading-overlay').classList.toggle('show',show);}
+
+// ═══ DADOS DE EXEMPLO (modo offline) ═════════════════════════
+function DADOS_EXEMPLO(){return [
+  {id:1,nome:'Aroma Tutti-Frutti',cat:'Aroma Líquido',un:'saco',min:2,seg:1,lead:10,forn:'Lapiendrius'},
+  {id:2,nome:'Aroma Morango',cat:'Aroma Líquido',un:'saco',min:2,seg:1,lead:10,forn:'Lapiendrius'},
+  {id:3,nome:'Aroma Bacon',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Duas Rodas'},
+  {id:4,nome:'Aroma Churrasco',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Duas Rodas'},
+  {id:5,nome:'Aroma Queijo',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:6,nome:'Aroma Galinha',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:7,nome:'Aroma Cebola',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:8,nome:'Aroma Costela no Bafo Picante',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:9,nome:'Aroma Costela com Limão',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:10,nome:'Aroma Presunto',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:11,nome:'Aroma Requeijão',cat:'Aroma Seco',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:12,nome:'Melhorador de Sabor',cat:'Aditivo',un:'saco',min:2,seg:1,lead:7,forn:'Duas Rodas'},
+  {id:13,nome:'Melhorador de Fritura',cat:'Aditivo',un:'saco',min:2,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:14,nome:'Corante Amarelo Canário',cat:'Corante',un:'saco',min:1,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:15,nome:'Corante Amarelo Ovo',cat:'Corante',un:'saco',min:1,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:16,nome:'Corante Verde Folha',cat:'Corante',un:'saco',min:1,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:17,nome:'Corante Vermelho',cat:'Corante',un:'saco',min:1,seg:1,lead:7,forn:'Citro Aroma'},
+  {id:18,nome:'Arroz',cat:'Grão',un:'saco',min:5,seg:2,lead:5,forn:''},
+  {id:19,nome:'Canjica de Milho',cat:'Grão',un:'saco',min:5,seg:2,lead:5,forn:''},
+  {id:20,nome:'Fubá de Milho',cat:'Grão',un:'saco',min:5,seg:2,lead:5,forn:''},
+  {id:21,nome:'Açúcar Cristal',cat:'Insumo Industrial',un:'saco',min:3,seg:2,lead:5,forn:''},
+  {id:22,nome:'Óleo de Soja',cat:'Insumo Industrial',un:'saco',min:3,seg:2,lead:5,forn:''},
+  {id:23,nome:'Sal Micronizado',cat:'Insumo Industrial',un:'saco',min:3,seg:2,lead:5,forn:''},
+  {id:24,nome:'Sal Refinado',cat:'Insumo Industrial',un:'saco',min:3,seg:2,lead:5,forn:''},
+  {id:25,nome:'Cal',cat:'Insumo Industrial',un:'saco',min:3,seg:2,lead:5,forn:''},
+  {id:26,nome:'Carbonato de Cálcio',cat:'Insumo Industrial',un:'saco',min:3,seg:2,lead:5,forn:''},
+  {id:27,nome:'Pellet Trigo LST 20x30',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
+  {id:28,nome:'Pellet Trigo LST 45x50',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
+  {id:29,nome:'Pellet Trigo LISO 15x30',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
+  {id:30,nome:'Pellet Trigo LST 20x15',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
+  {id:31,nome:'Pellet Trigo LST 20x40',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
+  {id:32,nome:'Pellet Trigo LISO 15x35',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
+  {id:33,nome:'Emb. Explositos 24g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:34,nome:'Emb. Explositos 24g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:35,nome:'Emb. Explositos 24g Galinha',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:36,nome:'Emb. Explositos 24g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:37,nome:'Emb. Explositos 45g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:38,nome:'Emb. Explositos 45g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:39,nome:'Emb. Explositos 45g Bacon',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:40,nome:'Emb. Explositos 45g Cebola',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:41,nome:'Emb. Explositos 45g Galinha',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:42,nome:'Emb. Explositos 45g Churrasco',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:43,nome:'Emb. Explositos 45g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:44,nome:'Emb. Explosão 100g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:45,nome:'Emb. Explosão 100g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:46,nome:'Emb. Explosão 100g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:47,nome:'Emb. Explosão 160g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:48,nome:'Emb. Explosão 160g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:49,nome:'Emb. Explosão 160g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:50,nome:'Emb. Batata 40g Original',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:51,nome:'Emb. Batata 40g Churrasco',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:52,nome:'Emb. Batata 40g Costelinha com Limão',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:53,nome:'Emb. Batata 40g Cebola e Salsa',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:54,nome:'Emb. Batata Palha 100g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:55,nome:'Emb. Pellet 70g Bacon',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:56,nome:'Emb. Pellet 70g Costela Picante',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:57,nome:'Emb. Pipoca de Arroz 30g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:58,nome:'Emb. Pipoca de Milho 20g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:59,nome:'Emb. Pipoca de Milho 42g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:60,nome:'Emb. Pipoca de Milho 100g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:61,nome:'Emb. Flocos Tutti-Frutti 70g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:62,nome:'Emb. Calesi Salgadinho 50g Presunto',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:63,nome:'Emb. Calesi Salgadinho 50g Bacon',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:64,nome:'Emb. Calesi Salgadinho 50g Cebola',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:65,nome:'Emb. Calesi Salgadinho 50g Galinha',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:66,nome:'Emb. Calesi Salgadinho 50g Requeijão',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:67,nome:'Emb. Calesi Pipoca 100g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:68,nome:'Emb. Calesi Flocos Morango 70g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:69,nome:'Emb. Calesi Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:70,nome:'Emb. Gune Requeijão 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:71,nome:'Emb. Gune Presunto 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:72,nome:'Emb. Gune Natural 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:73,nome:'Emb. Gune Galinha 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:74,nome:'Emb. Gune Churrasco 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:75,nome:'Emb. Gune Cebola e Salsa 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:76,nome:'Emb. Gune Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:77,nome:'Emb. Maximus Requeijão 45g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:78,nome:'Emb. Maximus Queijo 45g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:79,nome:'Emb. Maximus Presunto 45g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:80,nome:'Emb. Dicel Pipoca 90g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
+  {id:81,nome:'Emb. Dicel Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
+  {id:82,nome:'Emb. Dicel Pellet Bacon 70g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
+  {id:83,nome:'Emb. L&L Pellets 60g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'L&L'},
+  {id:84,nome:'Emb. L&L Flocos Tutti-Frutti 60g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'L&L'},
+  {id:85,nome:'Emb. Miliopa Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'},
+  {id:86,nome:'Emb. Miliopa Pipoca de Milho 90g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'}
+];}
+
+// ═══ IMPRESSÃO FICHA DE CONTAGEM ═════════════════════════════════
+function abrirModalImpressao(){
+  const cats=[...new Set(S.materiais.map(m=>m.cat).filter(Boolean))].sort();
+  const div=document.getElementById('cats-impressao');
+  div.innerHTML=cats.map(c=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);font-size:13px">
+      <input type="checkbox" value="${c}" checked style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <span style="flex:1">${c}</span>
+      <span style="font-size:11px;color:var(--text3)">${S.lotes.filter(l=>l.ativo&&l.dataEntrega&&S.materiais.find(m=>m.id===l.mpId&&m.cat===c)).length} lotes</span>
+    </label>`).join('');
+  document.getElementById('btn-todas-cats').textContent='Desmarcar Todas';
+  document.getElementById('modal-impressao').style.display='flex';
+}
+function fecharModalImpressao(){
+  document.getElementById('modal-impressao').style.display='none';
+}
+function toggleTodasCats(){
+  const checks=document.querySelectorAll('#cats-impressao input[type=checkbox]');
+  const btn=document.getElementById('btn-todas-cats');
+  const algumMarcado=[...checks].some(c=>c.checked);
+  checks.forEach(c=>c.checked=!algumMarcado);
+  btn.textContent=algumMarcado?'Selecionar Todas':'Desmarcar Todas';
+}
+function gerarFichaImpressao(){
+  const catsSel=[...document.querySelectorAll('#cats-impressao input[type=checkbox]:checked')].map(c=>c.value);
+  if(!catsSel.length){notify('Selecione ao menos uma categoria.','warn');return;}
+  const lotesAtivos=S.lotes.filter(l=>l.ativo&&l.dataEntrega);
+  const grupos={};
+  catsSel.forEach(cat=>{
+    const lotesCat=lotesAtivos.filter(l=>{
+      const mp=S.materiais.find(m=>m.id===l.mpId);
+      return mp&&mp.cat===cat;
+    }).sort((a,b)=>{
+      const na=S.materiais.find(m=>m.id===a.mpId)?.nome||'';
+      const nb=S.materiais.find(m=>m.id===b.mpId)?.nome||'';
+      return na.localeCompare(nb);
+    });
+    if(lotesCat.length) grupos[cat]=lotesCat;
+  });
+  if(!Object.keys(grupos).length){notify('Nenhum lote ativo para as categorias selecionadas.','warn');return;}
+  const dataHoje=new Date().toLocaleDateString('pt-BR');
+  let rows='';
+  Object.entries(grupos).forEach(([cat,lotes])=>{
+    rows+=`<tr class="cat-row"><td colspan="6">${cat}</td></tr>`;
+    lotes.forEach((l,i)=>{
+      const mp=S.materiais.find(m=>m.id===l.mpId);
+      rows+=`<tr class="${i%2===0?'':'alt'}">
+        <td>${mp?mp.nome:'—'}</td>
+        <td><span class="lote-badge">${l.lote||'—'}</span></td>
+        <td>${l.forn||'—'}</td>
+        <td>${(()=>{
+          if(!l.validade) return '—';
+          const d=(new Date(l.validade+'T00:00')-new Date())/864e5;
+          const str=fmtBR(l.validade);
+          if(d<0)   return str+' <span class="b-venc">VENCIDO</span>';
+          if(d<7)   return str+' <span class="b-urg">URGENTE</span>';
+          if(d<=30) return str+' <span class="b-prox">VENCE EM BREVE</span>';
+          return str;
+        })()}</td>
+        <td class="num">${l.saldoLote.toFixed(1)} ${mp?mp.un:''}</td>
+        <td class="input-col"></td>
+      </tr>`;
+    });
+  });
+  const total=Object.values(grupos).reduce((s,l)=>s+l.length,0);
+  const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+<title>WMS Explosão — Ficha de Contagem</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#111;background:#fff;padding:16px}
+@page{size:A4 portrait;margin:14mm 12mm}
+.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #1a472a;padding-bottom:10px;margin-bottom:14px}
+.header-left h1{font-size:15px;color:#1a472a;font-weight:700}
+.header-left p{font-size:10px;color:#555;margin-top:3px}
+.header-right{text-align:right;font-size:10px;color:#555}
+.header-right strong{display:block;font-size:12px;color:#111;margin-bottom:2px}
+.meta{display:flex;gap:24px;margin-bottom:14px;font-size:10px;color:#444;flex-wrap:wrap}
+.meta span b{color:#111}
+table{width:100%;border-collapse:collapse}
+th{background:#1a472a;color:#fff;padding:6px 8px;text-align:left;font-size:10px;font-weight:600}
+td{padding:5px 8px;border-bottom:1px solid #e5e5e5;vertical-align:middle}
+tr.alt td{background:#f7f9f7}
+tr.cat-row td{background:#d4edda;color:#1a472a;font-weight:700;font-size:10.5px;padding:5px 8px;text-transform:uppercase;letter-spacing:.4px}
+.lote-badge{background:#e8f4f8;color:#1a6a8a;border:1px solid #b8dce8;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;font-family:monospace}
+.num{text-align:right;font-weight:600;color:#1a472a}
+.input-col{width:90px;min-width:90px}
+.input-col::after{content:'';display:block;border-bottom:1.5px solid #999;margin:0 6px;margin-top:14px}
+.assinatura{margin-top:36px;display:flex;gap:60px}
+.assinatura div{flex:1;border-top:1px solid #555;padding-top:5px;font-size:10px;color:#444;text-align:center}
+.footer{margin-top:18px;border-top:1px solid #ccc;padding-top:10px;display:flex;justify-content:space-between;font-size:9.5px;color:#777}
+.no-print{margin-top:20px;text-align:center}
+.b-venc{background:#fde8e8;color:#c0392b;border:1px solid #f5c6c6;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;white-space:nowrap}
+.b-urg{background:#fff0e0;color:#b84c00;border:1px solid #f5c897;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;white-space:nowrap}
+.b-prox{background:#fffbe6;color:#7d6608;border:1px solid #f0d060;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;white-space:nowrap}
+@media print{.no-print{display:none!important}tr{page-break-inside:avoid}tr.cat-row{page-break-after:avoid}}
+</style></head><body>
+<div class="header">
+  <div class="header-left"><h1>WMS Explosão</h1><p>Ficha de Contagem Física de Estoque</p></div>
+  <div class="header-right"><strong>Data: ${dataHoje}</strong>Gerada: ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+</div>
+<div class="meta">
+  <span><b>Categorias:</b> ${catsSel.join(', ')}</span>
+  <span><b>Total de lotes:</b> ${total}</span>
+  <span><b>Responsável:</b> _______________________</span>
+</div>
+<table>
+  <thead><tr>
+    <th style="width:28%">Matéria-Prima</th>
+    <th style="width:15%">Lote</th>
+    <th style="width:16%">Fornecedor</th>
+    <th style="width:12%">Validade</th>
+    <th style="width:14%;text-align:right">Saldo Teórico</th>
+    <th style="width:15%">Contagem Física</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="assinatura"><div>Conferente</div><div>Supervisor</div><div>Data / Hora</div></div>
+<div class="footer"><span>WMS Explosão — Controle de Estoque por Lotes</span><span>Impresso em ${dataHoje}</span></div>
+<div class="no-print">
+  <button onclick="window.print()" style="padding:10px 28px;background:#1a472a;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600">Imprimir</button>
+  <button onclick="window.close()" style="margin-left:12px;padding:10px 20px;background:#eee;color:#333;border:none;border-radius:6px;font-size:14px;cursor:pointer">Fechar</button>
+</div>
+</body></html>`;
+  fecharModalImpressao();
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(),600);
+}
+</script>
+
+<!-- ═══ MODAL IMPRESSÃO FICHA ════════════════════════════════════ -->
+<div id="modal-impressao" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:12px;padding:28px;min-width:340px;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h3 style="margin:0;font-size:16px">🖨 Ficha de Contagem Física</h3>
+      <span onclick="fecharModalImpressao()" style="cursor:pointer;font-size:20px;color:var(--text3);line-height:1">&times;</span>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Selecione as categorias que deseja incluir na ficha:</p>
+    <div id="cats-impressao" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;margin-bottom:18px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn btn-sm" onclick="toggleTodasCats()" id="btn-todas-cats" style="background:var(--surface2);border:1px solid var(--border);font-size:13px">Selecionar Todas</button>
+      <button class="btn btn-sm" onclick="fecharModalImpressao()" style="background:var(--surface2);border:1px solid var(--border)">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="gerarFichaImpressao()">Gerar Ficha →</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
