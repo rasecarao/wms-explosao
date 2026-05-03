@@ -17,7 +17,7 @@
   --radius:10px;--radius-sm:6px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+html,body{height:100%}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:50}
 .topbar-brand{font-size:16px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:10px}
 .topbar-logo{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
@@ -28,7 +28,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sync-dot.offline{background:#e74c3c}
 .sync-dot.loading{background:#f39c12;animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:2px;overflow-x:auto}
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:2px;overflow-x:auto;position:sticky;top:64px;z-index:49}
 .nav::-webkit-scrollbar{height:3px}
 .nav-btn{padding:11px 14px;font-size:13px;color:var(--text2);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;font-weight:500;transition:all .15s}
 .nav-btn:hover{color:var(--text)}
@@ -155,6 +155,19 @@ tbody tr:hover td{background:var(--bg)}
 .empty{text-align:center;padding:28px;color:var(--text3);font-size:13px}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+/* ── VERSÃO ── */
+#app-version{position:fixed;bottom:10px;right:14px;font-size:10px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;z-index:999;pointer-events:none;letter-spacing:.3px}
+/* ── TOOLTIPS ── */
+.info-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--border2);color:var(--text2);font-size:10px;font-weight:700;cursor:default;margin-left:6px;flex-shrink:0;vertical-align:middle;line-height:1}
+.info-btn:hover{background:var(--accent);color:#fff}
+#wms-tooltip{position:fixed;background:#1a1a18;color:#fff;font-size:12px;font-weight:400;line-height:1.6;padding:10px 14px;border-radius:8px;max-width:280px;z-index:99999;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.35);display:none;white-space:normal}
+/* ── PARAMS GLOBAIS ── */
+.param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:700px){.param-grid{grid-template-columns:1fr}}
+.param-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.param-item label{display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.param-item input{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:15px;font-weight:600;color:var(--text);background:var(--surface);text-align:center}
+.param-desc{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -173,14 +186,15 @@ tbody tr:hover td{background:var(--bg)}
 </div>
 
 <div class="nav">
-  <button class="nav-btn active" onclick="showPage('dashboard',this)">Dashboard</button>
-  <button class="nav-btn" onclick="showPage('estoque',this)">Estoque por Lote</button>
-  <button class="nav-btn" onclick="showPage('entradas',this)">Registrar Entrada</button>
-  <button class="nav-btn" onclick="showPage('contagem',this)">Contagem Física</button>
-  <button class="nav-btn" onclick="showPage('consumo',this)">Análise de Consumo</button>
-  <button class="nav-btn" onclick="showPage('reposicao',this)">Reposição</button>
-  <button class="nav-btn" onclick="showPage('rastreabilidade',this)">Rastreabilidade</button>
-  <button class="nav-btn" onclick="showPage('config',this)">Configurações</button>
+  <button class="nav-btn active" onclick="showPage('dashboard',this)">Dashboard<span class="info-btn" data-tip="Visão geral do estoque: totais, alertas críticos, validades vencendo e últimas entradas.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('estoque',this)">Estoque por Lote<span class="info-btn" data-tip="Saldo atual de cada MP com seus lotes ativos. Clique na seta ▶ para ver os lotes individuais com validade e rastreabilidade.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('entradas',this)">Registrar Entrada<span class="info-btn" data-tip="Use aqui quando chegar mercadoria. Cada entrada vira um lote independente com número, fornecedor e validade rastreáveis.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('contagem',this)">Contagem Física<span class="info-btn" data-tip="O operador conta o estoque físico e lança aqui (ou usa a ficha impressa). Ao salvar, os saldos são atualizados automaticamente.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('consumo',this)">Análise de Consumo<span class="info-btn" data-tip="Selecione uma MP e veja o gráfico de evolução de saldo, consumo semanal e mensal estimado com base nas contagens realizadas.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('reposicao',this)">Reposição<span class="info-btn" data-tip="Tabela com todas as MPs mostrando quando e quanto pedir, com base no consumo histórico, lead time e estoque de segurança cadastrados.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('rastreabilidade',this)">Rastreabilidade<span class="info-btn" data-tip="Busque qualquer lote por nome, fornecedor ou número. Veja todo o histórico: origem, data, saldo atual, validade e valor.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('intel',this)">🧠 Inteligência<span class="info-btn" data-tip="Análises automáticas: valor do estoque em R$, sugestão de compra com quantidade ideal, detecção de consumo anormal e histórico de divergências.">ⓘ</span></button>
+  <button class="nav-btn" onclick="showPage('config',this)">Configurações<span class="info-btn" data-tip="Conexão com o Google Sheets, cadastro de novas MPs e parâmetros globais de inteligência e reposição.">ⓘ</span></button>
 </div>
 
 <div id="config-banner">
@@ -260,7 +274,6 @@ tbody tr:hover td{background:var(--bg)}
       <div class="form-group"><label>Número do Lote *</label><input type="text" id="ent-lote" placeholder="Ex: 16SD6F1A5D1" style="text-transform:uppercase"></div>
       <div class="form-group"><label>Validade</label><input type="date" id="ent-validade"></div>
       <div class="form-group"><label>Data da Compra</label><input type="date" id="ent-data-compra"></div>
-      <div class="form-group"><label>Previsão de Entrega</label><input type="date" id="ent-prev-entrega"></div>
       <div class="form-group"><label>Data Efetiva de Entrega</label><input type="date" id="ent-data-entrega" title="Ao preencher, o lote entra no saldo disponível"></div>
       <div class="form-group"><label>Valor Unitário (R$)</label><input type="number" id="ent-valor" step="0.01" min="0" placeholder="0,00"></div>
       <div class="form-group"><label>Observações</label><input type="text" id="ent-obs" placeholder="Opcional"></div>
@@ -377,8 +390,122 @@ tbody tr:hover td{background:var(--bg)}
   </div>
 </div>
 
+<!-- ═══ INTELIGÊNCIA ════════════════════════════════════════════ -->
+<div class="page" id="page-intel">
+
+  <!-- CARDS DE CUSTO -->
+  <div class="summary-grid" id="intel-custo-cards"></div>
+
+  <!-- SUGESTÃO DE REPOSIÇÃO -->
+  <div class="card">
+    <div class="card-title">🛒 Sugestão Automática de Reposição</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">MPs que devem ser pedidas agora com base no consumo histórico, lead time e estoque de segurança.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Matéria-Prima</th><th>Saldo Atual</th><th>Consumo/sem</th>
+          <th>Cobertura</th><th>Lead Time</th><th>Qty Sugerida</th><th>Urgência</th>
+        </tr></thead>
+        <tbody id="tbody-intel-repos"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DETECÇÃO DE ANOMALIAS -->
+  <div class="card">
+    <div class="card-title">⚠ Detecção de Anomalias de Consumo</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">MPs com consumo significativamente acima do histórico — possível desperdício, quebra ou desvio.</p>
+    <div id="intel-anomalias"></div>
+  </div>
+
+  <!-- GRÁFICO DE EVOLUÇÃO DE SALDO -->
+  <div class="card">
+    <div class="card-title">📈 Evolução de Saldo por Matéria-Prima</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <select id="intel-mp-sel" onchange="renderIntelGrafico()" style="padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text)">
+        <option value="">Selecionar MP...</option>
+      </select>
+      <span style="font-size:12px;color:var(--text2)">Baseado no histórico de contagens físicas</span>
+    </div>
+    <div class="chart-box" style="height:260px"><canvas id="chart-intel-saldo" role="img" aria-label="Evolução de saldo">Gráfico.</canvas></div>
+  </div>
+
+  <!-- HISTÓRICO DE DIVERGÊNCIAS -->
+  <div class="card">
+    <div class="card-title">🔍 Histórico de Divergências por Contagem</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">MPs que apresentam divergências recorrentes entre saldo teórico e contagem física.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Matéria-Prima</th><th>Contagens</th><th>Divergências</th>
+          <th>Taxa Divergência</th><th>Maior Div.</th><th>Tendência</th>
+        </tr></thead>
+        <tbody id="tbody-intel-div"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
 <!-- ═══ CONFIGURAÇÕES ════════════════════════════════════════════ -->
 <div class="page" id="page-config">
+  <!-- PARÂMETROS GLOBAIS DE INTELIGÊNCIA -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center">
+      ⚙ Parâmetros Globais de Inteligência e Reposição
+      <span class="info-btn" data-tip="Estes valores são usados como padrão para todas as MPs que não tiverem configuração própria. Ajuste conforme a realidade da sua operação.">ⓘ</span>
+    </div>
+    <div class="param-grid">
+      <div class="param-item">
+        <label>⏱ Lead Time Padrão
+          <span class="info-btn" data-tip="Quantos dias passam entre você fazer o pedido e a mercadoria chegar. Ex: pediu hoje, chegou em 7 dias → coloque 7.">ⓘ</span>
+        </label>
+        <input type="number" id="param-lead" min="1" max="90" value="7">
+        <div class="param-desc">dias entre o pedido e a entrega</div>
+      </div>
+      <div class="param-item">
+        <label>🛡 Estoque de Segurança
+          <span class="info-btn" data-tip="Quantos dias de reserva extra você quer ter para cobrir atrasos ou picos de produção. Ex: 3 dias = o sistema alerta antes de você chegar perto do zero.">ⓘ</span>
+        </label>
+        <input type="number" id="param-seg" min="0" max="60" value="3">
+        <div class="param-desc">dias de buffer para imprevistos</div>
+      </div>
+      <div class="param-item">
+        <label>📦 Cobertura Alvo
+          <span class="info-btn" data-tip="Quantos dias de estoque você quer ter após receber um pedido. Ex: 30 dias = a sugestão de compra sempre garante 30 dias de produção.">ⓘ</span>
+        </label>
+        <input type="number" id="param-cob" min="7" max="180" value="30">
+        <div class="param-desc">dias de estoque após reposição</div>
+      </div>
+      <div class="param-item">
+        <label>🔴 Limite Crítico
+          <span class="info-btn" data-tip="Abaixo de quantos dias de cobertura o sistema marca a MP como CRÍTICA (vermelho) no dashboard e alertas.">ⓘ</span>
+        </label>
+        <input type="number" id="param-crit" min="1" max="30" value="7">
+        <div class="param-desc">dias de cobertura = status crítico</div>
+      </div>
+      <div class="param-item">
+        <label>🟡 Limite Atenção
+          <span class="info-btn" data-tip="Abaixo de quantos dias de cobertura o sistema marca a MP como ATENÇÃO (amarelo). Deve ser maior que o Limite Crítico.">ⓘ</span>
+        </label>
+        <input type="number" id="param-warn" min="3" max="60" value="14">
+        <div class="param-desc">dias de cobertura = status atenção</div>
+      </div>
+      <div class="param-item">
+        <label>⚠ Anomalia (%)
+          <span class="info-btn" data-tip="Percentual acima do consumo médio histórico que aciona o alerta de anomalia. Ex: 50% = alerta se o consumo num período for 50% maior que o normal.">ⓘ</span>
+        </label>
+        <input type="number" id="param-anom" min="10" max="200" value="50">
+        <div class="param-desc">% acima da média = anomalia</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="salvarParams()">💾 Salvar Parâmetros</button>
+      <button class="btn" onclick="resetParams()">Restaurar Padrões</button>
+    </div>
+    <p class="form-note" style="margin-top:10px">Os parâmetros são salvos localmente neste navegador. Para cada MP individualmente, ajuste os campos Mínimo, Segurança e Lead Time no cadastro abaixo.</p>
+  </div>
+
   <div class="card">
     <div class="card-title">Conexão com Google Sheets</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -403,9 +530,9 @@ tbody tr:hover td{background:var(--bg)}
       <div class="form-group"><label>Unidade</label>
         <select id="cfg-un"><option value="saco">Saco</option><option value="rolo">Rolo</option><option value="kg">Kg</option><option value="un">Un</option><option value="L">L</option><option value="cx">Cx</option><option value="fardo">Fardo</option></select>
       </div>
-      <div class="form-group"><label>Estoque Mínimo</label><input type="number" id="cfg-min" placeholder="0" step="0.1" min="0"></div>
-      <div class="form-group"><label>Estoque de Segurança</label><input type="number" id="cfg-seg" placeholder="0" step="0.1" min="0"></div>
-      <div class="form-group"><label>Lead Time (dias)</label><input type="number" id="cfg-lead" placeholder="7" min="1"></div>
+      <div class="form-group"><label>Estoque Mínimo <span class="info-btn" data-tip="Quantidade física mínima que você quer manter. Se o saldo cair abaixo disso, vira CRÍTICO (vermelho).">ⓘ</span></label><input type="number" id="cfg-min" placeholder="0" step="0.1" min="0"></div>
+      <div class="form-group"><label>Seg. (dias) <span class="info-btn" data-tip="Dias de buffer para imprevistos. O sistema vai sugerir repor antes de chegar nesse limite. Ex: 3 = alerta com 3 dias de antecedência.">ⓘ</span></label><input type="number" id="cfg-seg" placeholder="0" step="0.1" min="0"></div>
+      <div class="form-group"><label>Lead Time (dias) <span class="info-btn" data-tip="Dias entre o pedido e a entrega para este fornecedor. Usado para calcular a data ideal do pedido.">ⓘ</span></label><input type="number" id="cfg-lead" placeholder="7" min="1"></div>
       <div class="form-group">
         <label>Fornecedor(es)</label>
         <input type="text" id="cfg-forn" list="forn-list-cfg" placeholder="Ex: Cargill / Moinho Verde">
@@ -431,20 +558,94 @@ tbody tr:hover td{background:var(--bg)}
 
 </div><!-- /main -->
 <div class="toast" id="toast"></div>
+<div id="app-version">Rev 11</div>
 
 <script>
 // ═══ CONFIG ═══════════════════════════════════════════════════
 const URL_FIXA = 'https://script.google.com/macros/s/AKfycbxbQW8d8Y2WC5zl1RNfFKFrBSbodm5EoyJ405nm6aWXu62pFFmRIcxNMITy1d5vfIHu/exec';
 let SCRIPT_URL = localStorage.getItem('ea_estoque_url') || URL_FIXA;
 
+// ═══ TOOLTIP GLOBAL ══════════════════════════════════════════════
+(function(){
+  const box = document.createElement('div');
+  box.id = 'wms-tooltip';
+  document.body.appendChild(box);
+
+  document.addEventListener('mouseover', function(e){
+    const btn = e.target.closest('[data-tip]');
+    if(!btn) return;
+    const txt = btn.getAttribute('data-tip');
+    if(!txt) return;
+    box.textContent = txt;
+    box.style.display = 'block';
+    posTooltip(btn);
+  });
+  document.addEventListener('mouseout', function(e){
+    if(!e.target.closest('[data-tip]')) return;
+    box.style.display = 'none';
+  });
+  document.addEventListener('mousemove', function(e){
+    if(box.style.display === 'none') return;
+    const btn = e.target.closest('[data-tip]');
+    if(btn) posTooltip(btn);
+  });
+  function posTooltip(btn){
+    const r = btn.getBoundingClientRect();
+    const tw = Math.min(280, window.innerWidth - 32);
+    box.style.maxWidth = tw + 'px';
+    // Tenta posicionar à direita
+    let left = r.right + 10;
+    let top  = r.top + r.height/2 - box.offsetHeight/2;
+    // Se sair pela direita, vai para a esquerda
+    if(left + tw > window.innerWidth - 8) left = r.left - tw - 10;
+    // Se sair pelo topo ou fundo, ajusta verticalmente
+    top = Math.max(8, Math.min(top, window.innerHeight - box.offsetHeight - 8));
+    box.style.left = left + 'px';
+    box.style.top  = top  + 'px';
+  }
+})();
+
+// ═══ PARÂMETROS GLOBAIS ══════════════════════════════════════════
+const PARAMS_DEFAULT = { lead:7, seg:3, cob:30, crit:7, warn:14, anom:50 };
+let P = { ...PARAMS_DEFAULT };
+function carregarParams(){
+  const saved = localStorage.getItem('wms_params');
+  if(saved){ try{ P = {...PARAMS_DEFAULT,...JSON.parse(saved)}; }catch(e){} }
+  document.getElementById('param-lead').value = P.lead;
+  document.getElementById('param-seg').value  = P.seg;
+  document.getElementById('param-cob').value  = P.cob;
+  document.getElementById('param-crit').value = P.crit;
+  document.getElementById('param-warn').value = P.warn;
+  document.getElementById('param-anom').value = P.anom;
+}
+function salvarParams(){
+  P.lead = parseInt(document.getElementById('param-lead').value)||7;
+  P.seg  = parseInt(document.getElementById('param-seg').value)||3;
+  P.cob  = parseInt(document.getElementById('param-cob').value)||30;
+  P.crit = parseInt(document.getElementById('param-crit').value)||7;
+  P.warn = parseInt(document.getElementById('param-warn').value)||14;
+  P.anom = parseInt(document.getElementById('param-anom').value)||50;
+  if(P.warn<=P.crit){ notify('Limite Atenção deve ser maior que Limite Crítico.','warn'); return; }
+  localStorage.setItem('wms_params', JSON.stringify(P));
+  notify('Parâmetros salvos! Recalculando...');
+  renderPage(pgAtual());
+}
+function resetParams(){
+  P = {...PARAMS_DEFAULT};
+  localStorage.removeItem('wms_params');
+  carregarParams();
+  notify('Parâmetros restaurados para os valores padrão.');
+  renderPage(pgAtual());
+}
+
 // ═══ STATE ════════════════════════════════════════════════════
 let S = { materiais: [], lotes: [], contagens: [] };
-let chartC = null, chartD = null;
+let chartC = null, chartD = null, chartI = null;
 
 // ═══ INIT ═════════════════════════════════════════════════════
 window.onload = () => {
+  carregarParams();
   document.getElementById('cnt-data').value = hoje();
-  document.getElementById('ent-data-compra').value = hoje();
   document.getElementById('ent-data-entrega').value = hoje();
   if (SCRIPT_URL) {
     document.getElementById('url-input').value = SCRIPT_URL;
@@ -548,7 +749,7 @@ function consumoSem(mpId){
   return diffs.length?diffs.reduce((a,b)=>a+b,0)/diffs.length:null;
 }
 function diasCob(mp){ const cs=consumoSem(mp.id); const s=saldoMP(mp.id); return(!cs||cs===0)?999:Math.round(s/(cs/7)); }
-function stMP(mp){ const dc=diasCob(mp),s=saldoMP(mp.id); if(s<=mp.min)return'danger'; if(s<=(mp.min+mp.seg))return'warn'; if(dc<=(mp.lead+3))return'warn'; return'ok'; }
+function stMP(mp){ const dc=diasCob(mp),s=saldoMP(mp.id); if(mp.min>0&&s<=mp.min)return'danger'; if(dc<=P.crit)return'danger'; if(dc<=P.warn)return'warn'; if(mp.seg>0&&s<=(mp.min+mp.seg))return'warn'; return'ok'; }
 function vencido(v){ return v&&new Date(v+'T00:00')<new Date(); }
 function urgente(v){ if(!v)return false; const d=(new Date(v+'T00:00')-new Date())/864e5; return d>=0&&d<7; }
 function proxVencer(v){ if(!v)return false; const d=(new Date(v+'T00:00')-new Date())/864e5; return d>=7&&d<=30; }
@@ -569,7 +770,7 @@ function showPage(p,btn){
   renderPage(p);
 }
 function renderPage(p){
-  const m={dashboard:renderDashboard,estoque:renderEstoque,entradas:renderEntradas,contagem:renderContagem,consumo:renderConsumo,reposicao:renderReposicao,rastreabilidade:renderRastreabilidade,config:renderConfig};
+  const m={dashboard:renderDashboard,estoque:renderEstoque,entradas:renderEntradas,contagem:renderContagem,consumo:renderConsumo,reposicao:renderReposicao,rastreabilidade:renderRastreabilidade,intel:renderIntel,config:renderConfig};
   if(m[p])m[p]();
 }
 
@@ -720,7 +921,7 @@ async function registrarLote(){
   const lote=document.getElementById('ent-lote').value.trim().toUpperCase();
   if(!mpId||!qty||!forn||!lote){notify('Preencha os campos obrigatórios: MP, Quantidade, Fornecedor e Lote.','warn');return;}
   const btn=document.getElementById('btn-ent');btn.disabled=true;btn.textContent='Salvando...';
-  const r=await gsCall({action:'saveLote',data:{mpId,qtyEntrada:qty,forn,lote,dataCompra:document.getElementById('ent-data-compra').value,prevEntrega:document.getElementById('ent-prev-entrega').value,dataEntrega:document.getElementById('ent-data-entrega').value,valorUnit:parseFloat(document.getElementById('ent-valor').value)||null,validade:document.getElementById('ent-validade').value,obs:document.getElementById('ent-obs').value}});
+  const r=await gsCall({action:'saveLote',data:{mpId,qtyEntrada:qty,forn,lote,dataCompra:document.getElementById('ent-data-compra').value,dataEntrega:document.getElementById('ent-data-entrega').value,valorUnit:parseFloat(document.getElementById('ent-valor').value)||null,validade:document.getElementById('ent-validade').value,obs:document.getElementById('ent-obs').value}});
   if(r&&r.ok){await sincronizar(true);notify('Lote registrado com sucesso!');limparEnt();renderEntradas();}
   else if(r) notify(r.error||'Erro','error');
   btn.disabled=false;btn.textContent='Registrar Lote';
@@ -731,7 +932,7 @@ async function encerrarLote(id){
   if(r&&r.ok){await sincronizar(true);notify('Lote encerrado.');renderEntradas();}
   else if(r) notify(r.error||'Erro','error');
 }
-function limparEnt(){['ent-mp','ent-forn','ent-obs','ent-qty','ent-valor','ent-prev-entrega','ent-lote','ent-validade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('ent-data-compra').value=hoje();document.getElementById('ent-data-entrega').value=hoje();}
+function limparEnt(){['ent-mp','ent-forn','ent-obs','ent-qty','ent-valor','ent-lote','ent-validade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('ent-data-entrega').value=hoje();}
 
 // ═══ CONTAGEM ═════════════════════════════════════════════════
 function renderContagem(){
@@ -997,6 +1198,134 @@ function DADOS_EXEMPLO(){return [
   {id:86,nome:'Emb. Miliopa Pipoca de Milho 90g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'}
 ];}
 
+
+// ═══ INTELIGÊNCIA ═════════════════════════════════════════════════
+function renderIntel(){
+  renderIntelCusto();
+  renderIntelReposicao();
+  renderIntelAnomalias();
+  renderIntelGrafico();
+  renderIntelDivergencias();
+  const sel=document.getElementById('intel-mp-sel');
+  if(sel&&sel.options.length<=1){
+    S.materiais.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m.id;o.textContent=m.nome;sel.appendChild(o);
+    });
+  }
+}
+
+function renderIntelCusto(){
+  let totalGeral=0;const porCat={};
+  S.lotes.filter(l=>l.ativo&&l.dataEntrega&&l.valorUnit).forEach(l=>{
+    const mp=S.materiais.find(m=>m.id===l.mpId);
+    const val=l.saldoLote*l.valorUnit;totalGeral+=val;
+    const cat=mp?mp.cat:'Outros';porCat[cat]=(porCat[cat]||0)+val;
+  });
+  const semValor=S.lotes.filter(l=>l.ativo&&l.dataEntrega&&!l.valorUnit).length;
+  const topCat=Object.entries(porCat).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const fmtR=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const el=document.getElementById('intel-custo-cards');
+  if(!el)return;
+  el.innerHTML=`<div class="stat-card ok" style="grid-column:span 2"><div class="stat-label">💰 Valor Total em Estoque</div><div class="stat-value" style="font-size:22px">${fmtR(totalGeral)}</div><div class="stat-sub">${semValor>0?semValor+' lote(s) sem preço':'Todos com preço'}</div></div>${topCat.map(([cat,val])=>`<div class="stat-card"><div class="stat-label">${cat}</div><div class="stat-value" style="font-size:16px">${fmtR(val)}</div><div class="stat-sub">${totalGeral?Math.round(val/totalGeral*100)+'% do total':'—'}</div></div>`).join('')}`;
+}
+
+function renderIntelReposicao(){
+  const rows=S.materiais.map(m=>{
+    const cs=consumoSem(m.id),csd=cs?cs/7:null;
+    const s=saldoMP(m.id),dc=csd&&csd>0?Math.round(s/csd):999;
+    if(dc>(m.lead+m.seg+P.warn)&&s>m.min)return null;
+    const qSug=csd?Math.round((m.lead+m.seg+P.cob)*csd-s):m.min*3;
+    const urgencia=dc<=0?'danger':dc<=m.lead?'warn':'ok';
+    if(urgencia==='ok'&&s>m.min)return null;
+    return{m,cs,dc,qSug,urgencia};
+  }).filter(Boolean).sort((a,b)=>a.dc-b.dc);
+  const el=document.getElementById('tbody-intel-repos');
+  if(!el)return;
+  el.innerHTML=rows.length?rows.map(({m,cs,dc,qSug,urgencia})=>`<tr>
+    <td style="font-weight:600">${m.nome}</td>
+    <td>${saldoMP(m.id).toFixed(1)} ${m.un}</td>
+    <td>${cs?cs.toFixed(1)+' '+m.un+'/sem':'—'}</td>
+    <td style="font-weight:600;color:${urgencia==='danger'?'var(--danger)':urgencia==='warn'?'#c07000':'inherit'}">${dc>=999?'∞':dc+'d'}</td>
+    <td>${m.lead}d</td>
+    <td style="font-weight:700;color:var(--accent)">${Math.max(0,qSug).toFixed(0)} ${m.un}</td>
+    <td><span class="badge ${urgencia==='danger'?'b-danger':urgencia==='warn'?'b-warn':'b-ok'}">${urgencia==='danger'?'🔴 Urgente':urgencia==='warn'?'🟡 Em breve':'🟢 OK'}</span></td>
+  </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">✅ Nenhuma reposição necessária agora.</td></tr>';
+}
+
+function renderIntelAnomalias(){
+  const anomalias=[];
+  S.materiais.forEach(m=>{
+    const cnts=S.contagens.filter(c=>c.items.some(i=>i.mpId===m.id)).sort((a,b)=>a.data>b.data?1:-1);
+    if(cnts.length<2)return;
+    const consumos=[];
+    for(let i=1;i<cnts.length;i++){
+      const ant=cnts[i-1].items.filter(x=>x.mpId===m.id).reduce((a,x)=>a+x.fisico,0);
+      const atual=cnts[i].items.filter(x=>x.mpId===m.id).reduce((a,x)=>a+x.fisico,0);
+      const d1=cnts[i-1].data,d2=cnts[i].data;
+      const ent=S.lotes.filter(l=>l.mpId===m.id&&l.dataEntrega>=d1&&l.dataEntrega<=d2).reduce((a,l)=>a+l.qtyEntrada,0);
+      const c=ant+ent-atual;if(c>0)consumos.push(c);
+    }
+    if(consumos.length<2)return;
+    const media=consumos.reduce((a,b)=>a+b,0)/consumos.length;
+    const ultimo=consumos[consumos.length-1];
+    const desvio=(ultimo-media)/Math.max(media,1)*100;
+    if(desvio>P.anom)anomalias.push({m,media,ultimo,desvio});
+  });
+  const el=document.getElementById('intel-anomalias');
+  if(!el)return;
+  if(!anomalias.length){el.innerHTML='<div class="empty">✅ Nenhuma anomalia detectada. Consumo dentro do padrão.</div>';return;}
+  el.innerHTML=anomalias.sort((a,b)=>b.desvio-a.desvio).map(({m,media,ultimo,desvio})=>`<div class="alert-item ${desvio>100?'danger':'warn'}" style="margin-bottom:8px"><div class="alert-icon ${desvio>100?'danger':'warn'}">⚠</div><div class="alert-body"><div class="alert-name">${m.nome}</div><div class="alert-desc">Último período: <strong>${ultimo.toFixed(1)} ${m.un}</strong> — Média: ${media.toFixed(1)} ${m.un} — <strong style="color:${desvio>100?'var(--danger)':'#c07000'}">+${desvio.toFixed(0)}% acima</strong></div></div><span class="alert-cta" onclick="showPage('contagem')">Ver →</span></div>`).join('');
+}
+
+function renderIntelGrafico(){
+  const sel=document.getElementById('intel-mp-sel');
+  if(!sel)return;
+  const mpId=parseInt(sel.value);
+  const mp=S.materiais.find(m=>m.id===mpId);
+  if(!mp){if(chartI){chartI.destroy();chartI=null;}return;}
+  const cnts=S.contagens.filter(c=>c.items.some(i=>i.mpId===mpId)).sort((a,b)=>a.data>b.data?1:-1);
+  const lbs=[],vals=[],entBars=[];
+  const primeira=S.lotes.filter(l=>l.mpId===mpId&&l.dataEntrega).sort((a,b)=>a.dataEntrega>b.dataEntrega?1:-1)[0];
+  if(primeira){lbs.push(fmtBR(primeira.dataEntrega));vals.push(primeira.qtyEntrada);entBars.push(primeira.qtyEntrada);}
+  cnts.forEach(c=>{
+    const fisico=c.items.filter(i=>i.mpId===mpId).reduce((a,i)=>a+i.fisico,0);
+    const ent=S.lotes.filter(l=>l.mpId===mpId&&l.dataEntrega===c.data).reduce((a,l)=>a+l.qtyEntrada,0);
+    lbs.push(fmtBR(c.data));vals.push(fisico);entBars.push(ent||null);
+  });
+  lbs.push('Hoje');vals.push(saldoMP(mpId));entBars.push(null);
+  if(chartI)chartI.destroy();
+  chartI=new Chart(document.getElementById('chart-intel-saldo'),{type:'line',data:{labels:lbs,datasets:[{label:'Saldo ('+mp.un+')',data:vals,borderColor:'#1a5c38',backgroundColor:'rgba(26,92,56,.08)',tension:.3,fill:true,pointRadius:5,pointBackgroundColor:'#1a5c38',yAxisID:'y'},{label:'Entradas',data:entBars,type:'bar',backgroundColor:'rgba(26,92,56,.35)',borderRadius:3,yAxisID:'y'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}},title:{display:true,text:mp.un}},x:{ticks:{font:{size:11}}}}}});
+}
+
+function renderIntelDivergencias(){
+  const resumo={};
+  S.contagens.forEach(c=>{
+    c.items.forEach(i=>{
+      if(!resumo[i.mpId])resumo[i.mpId]={total:0,divs:0,maiorDiv:0,diffs:[]};
+      resumo[i.mpId].total++;
+      if(i.div!==0){resumo[i.mpId].divs++;if(Math.abs(i.div)>Math.abs(resumo[i.mpId].maiorDiv))resumo[i.mpId].maiorDiv=i.div;resumo[i.mpId].diffs.push(i.div);}
+    });
+  });
+  const rows=Object.entries(resumo).filter(([,r])=>r.divs>0).map(([id,r])=>{
+    const mp=S.materiais.find(m=>m.id===parseInt(id));
+    const taxa=Math.round(r.divs/r.total*100);
+    const ultimas=r.diffs.slice(-3);
+    const mediaUlt=ultimas.length?ultimas.reduce((a,b)=>a+b,0)/ultimas.length:0;
+    const tend=mediaUlt<-1?'↓ Perdendo estoque':mediaUlt>1?'↑ Ganhando estoque':'→ Estável';
+    const tendColor=mediaUlt<-1?'var(--danger)':mediaUlt>1?'var(--accent)':'var(--text2)';
+    return{mp,r,taxa,tend,tendColor};
+  }).sort((a,b)=>b.taxa-a.taxa);
+  const el=document.getElementById('tbody-intel-div');
+  if(!el)return;
+  el.innerHTML=rows.length?rows.map(({mp,r,taxa,tend,tendColor})=>`<tr>
+    <td style="font-weight:600">${mp?mp.nome:'—'}</td><td>${r.total}</td><td>${r.divs}</td>
+    <td><span class="badge ${taxa>70?'b-danger':taxa>40?'b-warn':'b-ok'}">${taxa}%</span></td>
+    <td style="font-weight:600;color:${r.maiorDiv<0?'var(--danger)':r.maiorDiv>0?'var(--accent)':'inherit'}">${r.maiorDiv>0?'+':''}${r.maiorDiv}</td>
+    <td style="color:${tendColor};font-weight:500">${tend}</td>
+  </tr>`).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Nenhum histórico de divergências ainda.</td></tr>';
+}
+
 // ═══ IMPRESSÃO FICHA DE CONTAGEM ═════════════════════════════════
 function abrirModalImpressao(){
   const cats=[...new Set(S.materiais.map(m=>m.cat).filter(Boolean))].sort();
@@ -1127,6 +1456,8 @@ tr.cat-row td{background:#d4edda;color:#1a472a;font-weight:700;font-size:10.5px;
   setTimeout(()=>win.print(),600);
 }
 </script>
+
+<div id="wms-tooltip"></div>
 
 <!-- ═══ MODAL IMPRESSÃO FICHA ════════════════════════════════════ -->
 <div id="modal-impressao" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center">
