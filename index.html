@@ -273,7 +273,6 @@ tbody tr:hover td{background:var(--bg)}
       </div>
       <div class="form-group"><label>Número do Lote *</label><input type="text" id="ent-lote" placeholder="Ex: 16SD6F1A5D1" style="text-transform:uppercase"></div>
       <div class="form-group"><label>Validade</label><input type="date" id="ent-validade"></div>
-      <div class="form-group"><label>Data da Compra</label><input type="date" id="ent-data-compra"></div>
       <div class="form-group"><label>Data Efetiva de Entrega</label><input type="date" id="ent-data-entrega" title="Ao preencher, o lote entra no saldo disponível"></div>
       <div class="form-group"><label>Valor Unitário (R$)</label><input type="number" id="ent-valor" step="0.01" min="0" placeholder="0,00"></div>
       <div class="form-group"><label>Observações</label><input type="text" id="ent-obs" placeholder="Opcional"></div>
@@ -383,7 +382,7 @@ tbody tr:hover td{background:var(--bg)}
       <thead><tr>
         <th>Matéria-Prima</th><th>Lote</th><th>Fornecedor</th>
         <th>Entrada</th><th>Qtd Entrada</th><th>Saldo Atual</th><th>Un</th>
-        <th>Validade</th><th>Valor Unit.</th><th>Valor Total</th><th>Status Lote</th><th></th>
+        <th>Validade</th><th>Valor Unit.</th><th>Valor Total</th><th>Status Lote</th><th>Observação</th><th></th>
       </tr></thead>
       <tbody id="tbody-rastreabilidade"></tbody>
     </table>
@@ -528,7 +527,19 @@ tbody tr:hover td{background:var(--bg)}
         </select>
       </div>
       <div class="form-group"><label>Unidade</label>
-        <select id="cfg-un"><option value="saco">Saco</option><option value="rolo">Rolo</option><option value="kg">Kg</option><option value="un">Un</option><option value="L">L</option><option value="cx">Cx</option><option value="fardo">Fardo</option></select>
+        <input type="text" id="cfg-un" placeholder="Ex: saco, rolo, kg, milheiro, caixa..." list="un-list">
+        <datalist id="un-list">
+          <option value="saco">
+          <option value="rolo">
+          <option value="milheiro">
+          <option value="kg">
+          <option value="galão">
+          <option value="caixa">
+          <option value="fardo">
+          <option value="tambor">
+          <option value="unidade">
+          <option value="bobina">
+        </datalist>
       </div>
       <div class="form-group"><label>Estoque Mínimo <span class="info-btn" data-tip="Quantidade física mínima que você quer manter. Se o saldo cair abaixo disso, vira CRÍTICO (vermelho).">ⓘ</span></label><input type="number" id="cfg-min" placeholder="0" step="0.1" min="0"></div>
       <div class="form-group"><label>Seg. (dias) <span class="info-btn" data-tip="Dias de buffer para imprevistos. O sistema vai sugerir repor antes de chegar nesse limite. Ex: 3 = alerta com 3 dias de antecedência.">ⓘ</span></label><input type="number" id="cfg-seg" placeholder="0" step="0.1" min="0"></div>
@@ -558,7 +569,7 @@ tbody tr:hover td{background:var(--bg)}
 
 </div><!-- /main -->
 <div class="toast" id="toast"></div>
-<div id="app-version">Rev 11.3</div>
+<div id="app-version">Rev 12.3</div>
 
 <script>
 // ═══ CONFIG ═══════════════════════════════════════════════════
@@ -721,7 +732,8 @@ function normM(m){
   // forn pode vir como booleano TRUE/FALSE se a planilha tiver coluna extra deslocada — filtra isso
   const fornRaw = m.forn;
   const forn = (fornRaw === true || fornRaw === false || String(fornRaw).toUpperCase() === 'TRUE' || String(fornRaw).toUpperCase() === 'FALSE') ? '' : String(fornRaw||'');
-  return {id:Number(m.id),nome:String(m.nome||''),cat:String(m.cat||''),un:String(m.un||'un'),saldo:Number(m.saldo)||0,min:Number(m.min)||0,seg:Number(m.seg)||0,lead:Number(m.lead)||7,forn};
+  const obs = String(m.obs||'');
+  return {id:Number(m.id),nome:String(m.nome||''),cat:String(m.cat||''),un:String(m.un||'un'),saldo:Number(m.saldo)||0,min:Number(m.min)||0,seg:Number(m.seg)||0,lead:Number(m.lead)||7,forn,obs};
 }
 function normL(l){ return {id:Number(l.id),mpId:Number(l.mpId),forn:String(l.forn||''),lote:String(l.lote||''),dataCompra:fmtD(l.dataCompra),prevEntrega:fmtD(l.prevEntrega),dataEntrega:fmtD(l.dataEntrega),qtyEntrada:Number(l.qtyEntrada)||0,saldoLote:Number(l.saldoLote)||0,valorUnit:l.valorUnit?Number(l.valorUnit):null,validade:fmtD(l.validade),obs:String(l.obs||''),ativo:l.ativo!==false&&String(l.ativo)!=='false'&&String(l.ativo)!=='FALSE'}; }
 function normCnt(c){ return {id:Number(c.id),data:fmtD(c.data),obs:String(c.obs||''),items:(c.items||[]).map(i=>({contagemId:Number(i.contagemId),loteId:Number(i.loteId),mpId:Number(i.mpId),teorico:Number(i.teorico)||0,fisico:Number(i.fisico)||0,div:Number(i.div)||0}))}; }
@@ -910,6 +922,7 @@ function renderEntradas(){
       <td>${l.valorUnit?'R$ '+l.valorUnit.toFixed(2):'—'}</td>
       <td>${l.valorUnit&&l.qtyEntrada?'R$ '+(l.valorUnit*l.qtyEntrada).toFixed(2):'—'}</td>
       <td>${stL}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:200px">${l.obs||'—'}</td>
       <td>${l.ativo?`<button class="btn btn-sm btn-danger" onclick="encerrarLote(${l.id})">Encerrar</button>`:'—'}</td>
     </tr>`;
   }).join(''):'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3)">Nenhum lote registrado.</td></tr>';
@@ -921,7 +934,7 @@ async function registrarLote(){
   const lote=document.getElementById('ent-lote').value.trim().toUpperCase();
   if(!mpId||!qty||!forn||!lote){notify('Preencha os campos obrigatórios: MP, Quantidade, Fornecedor e Lote.','warn');return;}
   const btn=document.getElementById('btn-ent');btn.disabled=true;btn.textContent='Salvando...';
-  const r=await gsCall({action:'saveLote',data:{mpId,qtyEntrada:qty,forn,lote,dataCompra:document.getElementById('ent-data-compra').value,dataEntrega:document.getElementById('ent-data-entrega').value,valorUnit:parseFloat(document.getElementById('ent-valor').value)||null,validade:document.getElementById('ent-validade').value,obs:document.getElementById('ent-obs').value}});
+  const r=await gsCall({action:'saveLote',data:{mpId,qtyEntrada:qty,forn,lote,dataCompra:'',dataEntrega:document.getElementById('ent-data-entrega').value,valorUnit:parseFloat(document.getElementById('ent-valor').value)||null,validade:document.getElementById('ent-validade').value,obs:document.getElementById('ent-obs').value}});
   if(r&&r.ok){await sincronizar(true);notify('Lote registrado com sucesso!');limparEnt();renderEntradas();}
   else if(r) notify(r.error||'Erro','error');
   btn.disabled=false;btn.textContent='Registrar Lote';
@@ -1003,7 +1016,7 @@ function selConsumo(mpId,btn){
       <div class="stat-card ${st}"><div class="stat-label">Cobertura</div><div class="stat-value" style="font-size:20px">${dc>=999?'∞':dc}</div><div class="stat-sub">dias</div></div>
       <div class="stat-card"><div class="stat-label">Custo Médio</div><div class="stat-value" style="font-size:20px">${(()=>{const lv=la.filter(l=>l.valorUnit);return lv.length?'R$'+(lv.reduce((a,l)=>a+l.valorUnit,0)/lv.length).toFixed(2):'—';})()}</div><div class="stat-sub">por ${mp.un}</div></div>
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Lotes ativos: ${la.map(l=>`<span class="badge b-lote" style="margin-right:4px">${l.lote||'—'} · ${l.saldoLote.toFixed(1)} ${mp.un} (${l.forn})</span>`).join('')||'Nenhum'}</p>`;
+    ${mp.obs?`<p style="font-size:11px;color:var(--warn-text);background:var(--warn-bg);padding:6px 10px;border-radius:6px;margin-bottom:8px">⚠ ${mp.obs}</p>`:''}<p style="font-size:12px;color:var(--text2);margin-bottom:8px">Lotes ativos: ${la.map(l=>`<span class="badge b-lote" style="margin-right:4px">${l.lote||'—'} · ${l.saldoLote.toFixed(1)} ${mp.un} (${l.forn})</span>`).join('')||'Nenhum'}</p>`;
   // Gráfico: saldo consolidado por contagem
   const cnts=S.contagens.filter(c=>c.items.some(i=>i.mpId===mpId)).sort((a,b)=>a.data>b.data?1:-1);
   const lbs=cnts.map(c=>fmtBR(c.data,true));
@@ -1075,23 +1088,24 @@ function filtrarRastreabilidade(){
       <td>${l.valorUnit?'R$ '+l.valorUnit.toFixed(2):'—'}</td>
       <td>${l.valorUnit&&l.qtyEntrada?'R$ '+(l.valorUnit*l.qtyEntrada).toFixed(2):'—'}</td>
       <td>${stL}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:200px">${l.obs||'—'}</td>
       <td>${l.ativo?`<button class="btn btn-sm btn-danger" onclick="encerrarLote(${l.id})">Encerrar</button>`:'—'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3)">Nenhum lote encontrado.</td></tr>';
+  }).join(''):'<tr><td colspan="13" style="text-align:center;padding:20px;color:var(--text3)">Nenhum lote encontrado.</td></tr>';
 }
 
 // ═══ CONFIG ═══════════════════════════════════════════════════
 function renderConfig(){
   document.getElementById('url-config').value=SCRIPT_URL;
   document.getElementById('tbody-config').innerHTML=S.materiais.length
-    ?S.materiais.map(m=>`<tr><td style="font-weight:600">${m.nome}</td><td>${m.cat}</td><td>${m.un}</td><td>${saldoMP(m.id).toFixed(1)}</td><td>${m.min}</td><td>${m.seg}</td><td>${m.lead}d</td><td>${m.forn||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="remMP(${m.id})">Remover</button></td></tr>`).join('')
+    ?S.materiais.map(m=>`<tr><td style="font-weight:600">${m.nome}${m.obs?'<br><span style="font-size:10px;color:var(--warn-text);font-weight:400">⚠ '+m.obs+'</span>':''}</td><td>${m.cat}</td><td>${m.un}</td><td>${saldoMP(m.id).toFixed(1)}</td><td>${m.min}</td><td>${m.seg}</td><td>${m.lead}d</td><td>${m.forn||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="remMP(${m.id})">Remover</button></td></tr>`).join('')
     :'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text3)">Nenhuma matéria-prima.</td></tr>';
 }
 async function adicionarMP(){
   const nome=document.getElementById('cfg-nome').value.trim();
   if(!nome){notify('Informe o nome.','warn');return;}
   const btn=document.getElementById('btn-add-mp');btn.disabled=true;btn.textContent='Salvando...';
-  const r=await gsCall({action:'saveMaterial',data:{nome,cat:document.getElementById('cfg-cat').value,un:document.getElementById('cfg-un').value,min:Number(document.getElementById('cfg-min').value)||0,seg:Number(document.getElementById('cfg-seg').value)||0,lead:Number(document.getElementById('cfg-lead').value)||7,forn:document.getElementById('cfg-forn').value}});
+  const r=await gsCall({action:'saveMaterial',data:{nome,cat:document.getElementById('cfg-cat').value,un:document.getElementById('cfg-un').value,min:Number(document.getElementById('cfg-min').value)||0,seg:Number(document.getElementById('cfg-seg').value)||0,lead:Number(document.getElementById('cfg-lead').value)||7,forn:document.getElementById('cfg-forn').value,obs:document.getElementById('cfg-obs').value||''}});
   if(r&&r.ok){await sincronizar(true);notify('Cadastrado!');limparCfg();renderConfig();}
   else if(r) notify(r.error||'Erro','error');
   btn.disabled=false;btn.textContent='Salvar na Planilha';
@@ -1102,7 +1116,7 @@ async function remMP(id){
   if(r&&r.ok){await sincronizar(true);notify('Removido.');renderConfig();}
   else if(r) notify(r.error||'Erro','error');
 }
-function limparCfg(){['cfg-nome','cfg-min','cfg-seg','cfg-lead','cfg-forn'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})}
+function limparCfg(){['cfg-nome','cfg-min','cfg-seg','cfg-lead','cfg-forn','cfg-obs'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})}
 
 // ═══ UTILITÁRIOS ══════════════════════════════════════════════
 function notify(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(tipo==='error'?' error':tipo==='warn'?' warn-t':'');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);}
