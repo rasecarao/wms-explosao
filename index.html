@@ -311,7 +311,6 @@ tbody tr:hover td{background:var(--bg)}
       </div>
     </div>
     <!-- Filtros -->
-    <div id="diag-cat"></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px 0 4px;border-bottom:1px solid var(--border)">
       <span style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Filtrar:</span>
       <select id="cnt-filtro-cat" onchange="renderContagem()" style="font-size:13px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);cursor:pointer">
@@ -324,7 +323,6 @@ tbody tr:hover td{background:var(--bg)}
         <option value="">Todas as Matérias-Primas</option>
       </select>
       <button onclick="limparFiltrosCnt()" style="font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text3);cursor:pointer">✕ Limpar filtros</button>
-      <button onclick="debugContagem()" style="font-size:12px;padding:5px 10px;border:1px solid #6c757d;border-radius:6px;background:#6c757d;color:#fff;cursor:pointer">🔍 Debug</button>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);cursor:pointer;margin-left:4px"><input type="checkbox" id="cnt-mostrar-inativos" onchange="renderContagem()" style="accent-color:var(--accent)"> Mostrar inativos</label>
       <span id="cnt-filtro-info" style="font-size:12px;color:var(--text3);margin-left:4px"></span>
     </div>
@@ -781,18 +779,24 @@ function lotesAtivos(mpId){ return S.lotes.filter(l=>l.mpId===String(mpId)&&l.at
 function saldoMP(mpId){ return lotesAtivos(mpId).reduce((a,l)=>a+l.saldoLote,0); }
 // Consumo semanal calculado a partir das contagens (visão consolidada)
 function consumoSem(mpId){
-  const cnts=S.contagens.filter(c=>c.items.some(i=>i.mpId===String(mpId))).sort((a,b)=>a.data>b.data?1:-1);
+  const mid=String(mpId);
+  // Filtra contagens que têm itens desta MP, ordena por data crescente
+  const cnts=S.contagens
+    .filter(c=>c.data&&c.items.some(i=>String(i.mpId)===mid))
+    .sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:0);
   if(cnts.length<2) return null;
   const diffs=[];
   for(let i=1;i<cnts.length;i++){
-    const diasTotal=(new Date(cnts[i].data)-new Date(cnts[i-1].data))/864e5;
-    // Saldo consolidado da MP em cada contagem
-    const totPrev=cnts[i-1].items.filter(x=>x.mpId===String(mpId)).reduce((a,x)=>a+x.fisico,0);
-    const totCur =cnts[i  ].items.filter(x=>x.mpId===String(mpId)).reduce((a,x)=>a+x.fisico,0);
+    const d1=new Date(cnts[i-1].data+'T12:00');
+    const d2=new Date(cnts[i  ].data+'T12:00');
+    const diasTotal=(d2-d1)/864e5;
+    if(diasTotal<=0) continue; // contagens no mesmo dia
+    const totPrev=cnts[i-1].items.filter(x=>String(x.mpId)===mid).reduce((a,x)=>a+x.fisico,0);
+    const totCur =cnts[i  ].items.filter(x=>String(x.mpId)===mid).reduce((a,x)=>a+x.fisico,0);
     const cons=totPrev-totCur;
-    if(cons>0&&diasTotal>0) diffs.push(cons/diasTotal*7);
+    if(cons>0) diffs.push(cons/diasTotal*7);
   }
-  return diffs.length?diffs.reduce((a,b)=>a+b,0)/diffs.length:null;
+  return diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length*10)/10:null;
 }
 function diasCob(mp){ const cs=consumoSem(mp.id); const s=saldoMP(mp.id); return(!cs||cs===0)?999:Math.round(s/(cs/7)); }
 function stMP(mp){ const dc=diasCob(mp),s=saldoMP(mp.id); if(mp.min>0&&s<=mp.min)return'danger'; if(dc<=P.crit)return'danger'; if(dc<=P.warn)return'warn'; if(mp.seg>0&&s<=(mp.min+mp.seg))return'warn'; return'ok'; }
@@ -1055,23 +1059,6 @@ function renderContagem(){
   const total=S.lotes.filter(l=>l.ativo).length;
   if(infoEl) infoEl.textContent=lotesAtivos.length===total?`${total} lotes`:`${lotesAtivos.length} de ${total} lotes`;
 
-  // Diagnóstico de categorias — detecta materiais sem cat
-  const semCat=lotesAtivos.filter(l=>{
-    const mp=S.materiais.find(m=>m.id===String(l.mpId));
-    return !mp||!mp.cat;
-  });
-  const diagCatEl=document.getElementById('diag-cat');
-  if(diagCatEl){
-    if(semCat.length>0){
-      const mpsSemCat=[...new Set(semCat.map(l=>{const mp=S.materiais.find(m=>m.id===String(l.mpId));return mp?mp.nome:'(sem MP)'}))].sort();
-      diagCatEl.innerHTML=`<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:12px">
-        ⚠️ <b>${semCat.length} lote(s) de ${mpsSemCat.length} matéria(s)-prima sem categoria</b> — aparecem no grupo <b>"Sem Categoria"</b> no topo da tabela.<br>
-        <span style="color:var(--text3)">MPs sem categoria: ${mpsSemCat.slice(0,5).join(', ')}${mpsSemCat.length>5?' e mais '+(mpsSemCat.length-5)+'...':''}</span>
-      </div>`;
-    } else {
-      diagCatEl.innerHTML='';
-    }
-  }
 
   // Monta tabela agrupada por categoria
   let html='';
@@ -1118,51 +1105,6 @@ function renderContagem(){
     const lt=S.lotes.find(l=>l.id===String(i.loteId));
     return{data:c.data,mp:mp?mp.nome:'—',lote:lt?lt.lote:'—',teorico:i.teorico,fisico:i.fisico,div:i.div};
   })).sort((a,b)=>b.data>a.data?1:-1);
-}
-function debugContagem(){
-  const total=S.lotes.length;
-  const ativos=S.lotes.filter(l=>l.ativo).length;
-  const filtCat=document.getElementById('cnt-filtro-cat').value;
-  const filtForn=document.getElementById('cnt-filtro-forn').value;
-  const filtMp=document.getElementById('cnt-filtro-mp').value;
-
-  // Pega amostra dos primeiros 5 lotes e últimos 5
-  const amostra=[...S.lotes.slice(0,3),...S.lotes.slice(-3)].map(l=>{
-    const mp=S.materiais.find(m=>m.id===String(l.mpId));
-    return `id=${l.id} mpId=${l.mpId} ativo=${l.ativo} mp=${mp?mp.nome:'???'}`;
-  }).join('\n');
-
-  // Busca específica por mpId='2'
-  const mp2=S.lotes.filter(l=>String(l.mpId)==='2');
-  const mp2info=mp2.map(l=>`  id=${l.id} lote=${l.lote} ativo=${l.ativo} saldo=${l.saldoLote}`).join('\n');
-
-  // Material id=2
-  const mat2=S.materiais.find(m=>m.id==='2');
-
-  alert(
-    `=== DEBUG CONTAGEM ===
-`+
-    `S.lotes total: ${total}
-`+
-    `S.lotes ativos: ${ativos}
-`+
-    `S.materiais total: ${S.materiais.length}
-
-`+
-    `Filtros ativos:
-`+
-    `  cat="${filtCat}" forn="${filtForn}" mp="${filtMp}"
-
-`+
-    `Material id=2: ${mat2?mat2.nome+' cat='+mat2.cat:'NÃO ENCONTRADO'}
-`+
-    `Lotes mpId=2 (${mp2.length}):
-${mp2info||'  NENHUM'}
-
-`+
-    `Amostra S.lotes:
-${amostra}`
-  );
 }
 async function reativarLote(loteId){
   const r=await gsCall({action:'reativarLote',data:{id:loteId}});
