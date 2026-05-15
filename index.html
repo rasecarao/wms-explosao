@@ -237,8 +237,9 @@ tbody tr:hover td{background:var(--bg)}
       <option value="Aroma Líquido">Aromas Líquidos</option><option value="Aroma Seco">Aromas Secos</option>
       <option value="Aditivo">Aditivos</option><option value="Corante">Corantes</option>
       <option value="Grão">Grãos</option><option value="Insumo Industrial">Insumos Industriais</option>
-      <option value="Pellet">Pellets</option><option value="Embalagem">Embalagens Próprias</option>
-      <option value="Embalagem Terceiro">Embalagens Terceiros</option>
+      <option value="Pellet">Pellets</option><option value="Bobina Explosão">Bobina Explosão</option>
+      <option value="Bobina Terceirizados">Bobina Terceirizados</option>
+      <option value="Capa Fardo">Capa Fardo</option>
     </select>
     <select id="filtro-status" onchange="filtrarEstoque()">
       <option value="">Todos os status</option>
@@ -529,8 +530,9 @@ tbody tr:hover td{background:var(--bg)}
           <option value="Aroma Líquido">Aroma Líquido</option><option value="Aroma Seco">Aroma Seco</option>
           <option value="Aditivo">Aditivo</option><option value="Corante">Corante</option>
           <option value="Grão">Grão</option><option value="Insumo Industrial">Insumo Industrial</option>
-          <option value="Pellet">Pellet</option><option value="Embalagem">Embalagem</option>
-          <option value="Embalagem Terceiro">Embalagem Terceiro</option>
+          <option value="Pellet">Pellet</option><option value="Bobina Explosão">Bobina Explosão</option>
+          <option value="Bobina Terceirizados">Bobina Terceirizados</option>
+          <option value="Capa Fardo">Capa Fardo</option>
         </select>
       </div>
       <div class="form-group"><label>Unidade</label>
@@ -1320,60 +1322,60 @@ function DADOS_EXEMPLO(){return [
   {id:30,nome:'Pellet Trigo LST 20x15',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
   {id:31,nome:'Pellet Trigo LST 20x40',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
   {id:32,nome:'Pellet Trigo LISO 15x35',cat:'Pellet',un:'saco',min:5,seg:2,lead:7,forn:''},
-  {id:33,nome:'Emb. Explositos 24g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:34,nome:'Emb. Explositos 24g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:35,nome:'Emb. Explositos 24g Galinha',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:36,nome:'Emb. Explositos 24g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:37,nome:'Emb. Explositos 45g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:38,nome:'Emb. Explositos 45g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:39,nome:'Emb. Explositos 45g Bacon',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:40,nome:'Emb. Explositos 45g Cebola',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:41,nome:'Emb. Explositos 45g Galinha',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:42,nome:'Emb. Explositos 45g Churrasco',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:43,nome:'Emb. Explositos 45g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:44,nome:'Emb. Explosão 100g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:45,nome:'Emb. Explosão 100g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:46,nome:'Emb. Explosão 100g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:47,nome:'Emb. Explosão 160g Presunto',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:48,nome:'Emb. Explosão 160g Queijo',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:49,nome:'Emb. Explosão 160g Requeijão',cat:'Embalagem',un:'rolo',min:5,seg:2,lead:10,forn:''},
-  {id:50,nome:'Emb. Batata 40g Original',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:51,nome:'Emb. Batata 40g Churrasco',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:52,nome:'Emb. Batata 40g Costelinha com Limão',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:53,nome:'Emb. Batata 40g Cebola e Salsa',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:54,nome:'Emb. Batata Palha 100g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:55,nome:'Emb. Pellet 70g Bacon',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:56,nome:'Emb. Pellet 70g Costela Picante',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:57,nome:'Emb. Pipoca de Arroz 30g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:58,nome:'Emb. Pipoca de Milho 20g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:59,nome:'Emb. Pipoca de Milho 42g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:60,nome:'Emb. Pipoca de Milho 100g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:61,nome:'Emb. Flocos Tutti-Frutti 70g',cat:'Embalagem',un:'rolo',min:3,seg:1,lead:10,forn:''},
-  {id:62,nome:'Emb. Calesi Salgadinho 50g Presunto',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:63,nome:'Emb. Calesi Salgadinho 50g Bacon',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:64,nome:'Emb. Calesi Salgadinho 50g Cebola',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:65,nome:'Emb. Calesi Salgadinho 50g Galinha',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:66,nome:'Emb. Calesi Salgadinho 50g Requeijão',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:67,nome:'Emb. Calesi Pipoca 100g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:68,nome:'Emb. Calesi Flocos Morango 70g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:69,nome:'Emb. Calesi Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
-  {id:70,nome:'Emb. Gune Requeijão 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:71,nome:'Emb. Gune Presunto 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:72,nome:'Emb. Gune Natural 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:73,nome:'Emb. Gune Galinha 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:74,nome:'Emb. Gune Churrasco 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:75,nome:'Emb. Gune Cebola e Salsa 50g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:76,nome:'Emb. Gune Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:77,nome:'Emb. Maximus Requeijão 45g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:78,nome:'Emb. Maximus Queijo 45g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:79,nome:'Emb. Maximus Presunto 45g',cat:'Embalagem Terceiro',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
-  {id:80,nome:'Emb. Dicel Pipoca 90g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
-  {id:81,nome:'Emb. Dicel Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
-  {id:82,nome:'Emb. Dicel Pellet Bacon 70g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
-  {id:83,nome:'Emb. L&L Pellets 60g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'L&L'},
-  {id:84,nome:'Emb. L&L Flocos Tutti-Frutti 60g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'L&L'},
-  {id:85,nome:'Emb. Miliopa Flocos Tutti-Frutti 70g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'},
-  {id:86,nome:'Emb. Miliopa Pipoca de Milho 90g',cat:'Embalagem Terceiro',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'}
+  {id:33,nome:'Emb. Explositos 24g Presunto',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:34,nome:'Emb. Explositos 24g Queijo',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:35,nome:'Emb. Explositos 24g Galinha',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:36,nome:'Emb. Explositos 24g Requeijão',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:37,nome:'Emb. Explositos 45g Presunto',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:38,nome:'Emb. Explositos 45g Queijo',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:39,nome:'Emb. Explositos 45g Bacon',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:40,nome:'Emb. Explositos 45g Cebola',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:41,nome:'Emb. Explositos 45g Galinha',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:42,nome:'Emb. Explositos 45g Churrasco',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:43,nome:'Emb. Explositos 45g Requeijão',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:44,nome:'Emb. Explosão 100g Presunto',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:45,nome:'Emb. Explosão 100g Queijo',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:46,nome:'Emb. Explosão 100g Requeijão',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:47,nome:'Emb. Explosão 160g Presunto',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:48,nome:'Emb. Explosão 160g Queijo',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:49,nome:'Emb. Explosão 160g Requeijão',cat:'Bobina Explosão',un:'rolo',min:5,seg:2,lead:10,forn:''},
+  {id:50,nome:'Emb. Batata 40g Original',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:51,nome:'Emb. Batata 40g Churrasco',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:52,nome:'Emb. Batata 40g Costelinha com Limão',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:53,nome:'Emb. Batata 40g Cebola e Salsa',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:54,nome:'Emb. Batata Palha 100g',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:55,nome:'Emb. Pellet 70g Bacon',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:56,nome:'Emb. Pellet 70g Costela Picante',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:57,nome:'Emb. Pipoca de Arroz 30g',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:58,nome:'Emb. Pipoca de Milho 20g',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:59,nome:'Emb. Pipoca de Milho 42g',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:60,nome:'Emb. Pipoca de Milho 100g',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:61,nome:'Emb. Flocos Tutti-Frutti 70g',cat:'Bobina Explosão',un:'rolo',min:3,seg:1,lead:10,forn:''},
+  {id:62,nome:'Emb. Calesi Salgadinho 50g Presunto',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:63,nome:'Emb. Calesi Salgadinho 50g Bacon',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:64,nome:'Emb. Calesi Salgadinho 50g Cebola',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:65,nome:'Emb. Calesi Salgadinho 50g Galinha',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:66,nome:'Emb. Calesi Salgadinho 50g Requeijão',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:67,nome:'Emb. Calesi Pipoca 100g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:68,nome:'Emb. Calesi Flocos Morango 70g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:69,nome:'Emb. Calesi Flocos Tutti-Frutti 70g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Calesi'},
+  {id:70,nome:'Emb. Gune Requeijão 50g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:71,nome:'Emb. Gune Presunto 50g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:72,nome:'Emb. Gune Natural 50g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:73,nome:'Emb. Gune Galinha 50g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:74,nome:'Emb. Gune Churrasco 50g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:75,nome:'Emb. Gune Cebola e Salsa 50g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:76,nome:'Emb. Gune Flocos Tutti-Frutti 70g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:77,nome:'Emb. Maximus Requeijão 45g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:78,nome:'Emb. Maximus Queijo 45g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:79,nome:'Emb. Maximus Presunto 45g',cat:'Bobina Terceirizados',un:'rolo',min:3,seg:1,lead:10,forn:'Gune'},
+  {id:80,nome:'Emb. Dicel Pipoca 90g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
+  {id:81,nome:'Emb. Dicel Flocos Tutti-Frutti 70g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
+  {id:82,nome:'Emb. Dicel Pellet Bacon 70g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'Dicel'},
+  {id:83,nome:'Emb. L&L Pellets 60g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'L&L'},
+  {id:84,nome:'Emb. L&L Flocos Tutti-Frutti 60g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'L&L'},
+  {id:85,nome:'Emb. Miliopa Flocos Tutti-Frutti 70g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'},
+  {id:86,nome:'Emb. Miliopa Pipoca de Milho 90g',cat:'Bobina Terceirizados',un:'rolo',min:2,seg:1,lead:10,forn:'Miliopa'}
 ];}
 
 
